@@ -18,6 +18,12 @@ Node.js 24で `node --test tests/*.test.mjs`、`node tools/build.mjs` を実行�
 
 GitHub Pagesは「Deploy from a branch」で `gh-pages` ブランチの `/ (root)` を公開します。`main` はソース保管用です。更新時はテストとビルドを行い、`_site/` の中身（`.nojekyll` を含む）を `gh-pages` にコミットしてpushしてください。`main` の変更だけではゲームは更新されません。
 
+## アクセス解析
+
+ゲームページにCloudflare Web Analyticsを設置しています。管理画面でページ表示・訪問・参照元・表示性能などを確認できます。訪問数はプレイ開始数や実人数とは異なり、ゲーム内イベントの個別計測は行っていません。設置用トークンは公開HTMLに含まれるサイト識別子で、管理用APIキーではありません。
+
+CSPは公式スクリプト `https://static.cloudflareinsights.com/beacon.min.js` と送信先 `https://cloudflareinsights.com/cdn-cgi/rum` のみ追加で許可しています。解析がブロックされてもゲーム自体は動作します。説明は [記録とプライバシー](about.html) に掲載しています。
+
 ## 素材とライセンス
 
 [案内とクレジット](about.html)、[第三者ライセンス](THIRD_PARTY_NOTICES.md) を参照してください。リポジトリ全体への追加のオープンソースライセンスは指定していません。第三者素材の権利や各ライセンスはそれぞれの権利者に帰属します。公開されていることだけを理由に素材を自由に再配布・販売できるわけではありません。

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bOKWdD6/axLWRCY/ZvZ3OnFe80Hae0/5GW4/5lztm3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com/beacon.min.js 'sha256-bOKWdD6/axLWRCY/ZvZ3OnFe80Hae0/5GW4/5lztm3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob: https://cloudflareinsights.com/cdn-cgi/rum; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="おじさんのお尻を叩いて宇宙へ。カードバトルと写真モードも楽しめる、無料のブラウザゲーム。">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2054,5 +2054,8 @@
     <button id="restart-btn">もう一度おじさんに会う</button>
   </div>
   <script type="module" src="./js/main.js"></script>
+  <!-- Cloudflare Web Analytics -->
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"0ac001f146da4aed8706a96a5f805234"}'></script>
+  <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
