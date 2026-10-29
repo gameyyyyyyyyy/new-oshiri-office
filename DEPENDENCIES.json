@@ -1,0 +1,37 @@
+[
+  {
+    "file": "vendor/three/examples/jsm/controls/OrbitControls.js",
+    "version": "r160",
+    "source": "https://github.com/mrdoob/three.js/blob/r160/examples/jsm/controls/OrbitControls.js",
+    "sha256": "5a44a9e86a2a0fb11933eed69bc2cd33c76a496854c1aed6ed776efa87d7b064",
+    "license": "MIT"
+  },
+  {
+    "file": "vendor/three/examples/jsm/loaders/GLTFLoader.js",
+    "version": "r160",
+    "source": "https://github.com/mrdoob/three.js/blob/r160/examples/jsm/loaders/GLTFLoader.js",
+    "sha256": "d073b438e6a07e1359741dd5d6c76c953420cc0d4fd84eb1bdde94315540e6a3",
+    "license": "MIT"
+  },
+  {
+    "file": "vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+    "version": "r160",
+    "source": "https://github.com/mrdoob/three.js/blob/r160/examples/jsm/utils/BufferGeometryUtils.js",
+    "sha256": "9be041e96308775d00e2695cc607645b9a9b64fd7c0e759dd8f7c00a8d92becb",
+    "license": "MIT"
+  },
+  {
+    "file": "vendor/three/examples/jsm/utils/SkeletonUtils.js",
+    "version": "r160",
+    "source": "https://github.com/mrdoob/three.js/blob/r160/examples/jsm/utils/SkeletonUtils.js",
+    "sha256": "83748c5072a5ce96e9d68d8efda908a1f1a06c0b5fd2618edc3e54a361a8fd5b",
+    "license": "MIT"
+  },
+  {
+    "file": "vendor/three/three.module.js",
+    "version": "r160",
+    "source": "https://github.com/mrdoob/three.js/blob/r160/build/three.module.js",
+    "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "license": "MIT"
+  }
+]

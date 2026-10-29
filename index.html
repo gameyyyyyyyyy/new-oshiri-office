@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bOKWdD6/axLWRCY/ZvZ3OnFe80Hae0/5GW4/5lztm3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="おじさんのお尻を叩いて宇宙へ。カードバトルと写真モードも楽しめる、無料のブラウザゲーム。">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2715%27 fill=%27%23ff4f8b%27/%3E%3C/svg%3E">
+<title>おしりオフィス 〜1000叩きで宇宙へ〜</title>
+<link rel="stylesheet" href="assets/fonts/mochiy.css">
+<style>
+  #save-notice { position:fixed; top:8px; left:5%; width:90%; z-index:100; padding:12px; color:#222; background:#fff4cc; border:2px solid #9c7200; font-size:13px; }
+  .release-note { font-size:12px; line-height:1.7; max-width:420px; margin:0 12px; }
+  .release-note a, .settings-info a { color:inherit; text-decoration:underline; }
+  .settings-info { font-size:12px; line-height:1.8; margin-top:16px; }
+  #reset-save { padding:9px 12px; margin-top:12px; color:#532222; background:#fff4f4; border:1px solid #995555; border-radius:6px; cursor:pointer; }
+  /* ==== デザイントークン(配色A: ホットピンク×白×チャコールプラム) ==== */
+  :root {
+    --pk: #ff4f8b;        /* メインピンク */
+    --pk-deep: #e0356f;   /* 濃ピンク */
+    --pk-pale: #ffd9e8;   /* 薄ピンク */
+    --ink: #2b2130;       /* 締め色(チャコールプラム) */
+    --paper: #ffffff;
+    --hf: "Mochiy Pop One", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  input[type="range"], input[type="checkbox"] { accent-color: var(--pk); }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a22; font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  #start-screen {
+    position: fixed; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 20px;
+    background:
+      radial-gradient(circle 2.2px at 8px 8px, rgba(255,255,255,.06) 98%, transparent) 0 0/26px 26px,
+      repeating-linear-gradient(-24deg, transparent 0 26px, rgba(255,255,255,.04) 26px 52px),
+      linear-gradient(160deg, var(--ink), #14101a 70%);
+    color: #fff;
+  }
+  #start-logo { width: min(430px, 88vw); height: auto; }
+  #start-screen .tagline {
+    font-size: 13px; color: var(--pk-pale); background: rgba(0,0,0,.35);
+    padding: 4px 18px; transform: skew(-8deg); margin-bottom: 10px;
+  }
+  #mode-buttons { display: flex; flex-direction: column; gap: 12px; }
+  #mode-buttons button {
+    border: none; padding: 13px 40px; font-size: 17px;
+    font-family: var(--hf); cursor: pointer; color: var(--ink);
+    background: var(--paper);
+    clip-path: polygon(4% 0, 100% 6%, 97% 100%, 0 92%);
+    transform: skew(-6deg);
+    filter: drop-shadow(4px 4px 0 rgba(0,0,0,.4));
+    transition: transform .12s, background .12s, color .12s;
+  }
+  #mode-buttons button:hover { background: var(--pk); color: #fff; transform: skew(-6deg) scale(1.05); }
+  #mode-buttons button.locked {
+    background: #565058; color: #9a929e; cursor: not-allowed;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,.3));
+  }
+  #mode-god-hint { font-size: 11px; color: #b9a9b9; transform: skew(-6deg); }
+
+  #title-bar {
+    position: fixed; top: 14px; left: 16px; pointer-events: none; z-index: 5;
+  }
+  #title-bar h1 {
+    font-family: var(--hf); font-size: 20px; letter-spacing: 1px; font-weight: normal;
+    color: var(--pk); transform: skew(-8deg) rotate(-2deg);
+    text-shadow: 2px 2px 0 var(--paper), 4px 4px 0 var(--ink), 5px 5px 8px rgba(0,0,0,.5);
+  }
+  /* スマホではポイントUIと被るのでタイトルと説明を非表示 */
+  @media (max-width: 760px) {
+    #title-bar { display: none; }
+  }
+
+  #slap-counter {
+    position: fixed; top: 14px; right: 16px; z-index: 5; color: var(--paper);
+    background: var(--ink); padding: 9px 24px 11px 16px;
+    font-size: 13px; font-weight: bold; pointer-events: none;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%);
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,.35));
+    min-width: 220px; text-align: left;
+  }
+  #slap-count { font-family: var(--hf); color: var(--pk); font-size: 15px; font-weight: normal; }
+  #slap-bar {
+    margin-top: 6px; height: 8px; background: rgba(255,255,255,.14);
+    transform: skew(-18deg); overflow: hidden;
+  }
+  #slap-bar-fill {
+    height: 100%; width: 0%;
+    background: repeating-linear-gradient(-45deg, var(--pk) 0 8px, var(--pk-deep) 8px 16px);
+    transition: width .25s;
+  }
+  #equip-line {
+    display: inline-block; margin-top: 7px; font-size: 12px; color: #fff;
+    background: var(--pk); padding: 2px 12px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
+  }
+
+  #toast-area {
+    position: fixed; top: 84px; right: 16px; z-index: 5; display: flex;
+    flex-direction: column; gap: 6px; align-items: flex-end; pointer-events: none;
+  }
+  .toast {
+    background: var(--paper); color: var(--ink); font-size: 13px; font-weight: bold;
+    padding: 8px 16px;
+    clip-path: polygon(1% 8%, 100% 0, 99% 92%, 0 100%);
+    transform: skew(-4deg);
+    filter: drop-shadow(3px 3px 0 var(--pk));
+    animation: toastIn .4s ease-out, toastOut .6s ease-in 4s forwards;
+  }
+  @keyframes toastIn { from { transform: skew(-4deg) translateX(40px); opacity: 0; } to { transform: skew(-4deg); opacity: 1; } }
+  @keyframes toastOut { to { transform: skew(-4deg) translateY(-10px); opacity: 0; } }
+
+  #controls {
+    position: fixed; left: 16px; bottom: 16px; z-index: 5;
+    display: flex; flex-direction: column; gap: 8px; width: min(340px, 60vw);
+  }
+  #chat-toggle { display: none; }
+  /* PC向けの操作説明。タッチ端末では出さない(下の760px指定で消す) */
+  #key-hint {
+    font-size: 11px; line-height: 1.6; color: rgba(255,255,255,.72);
+    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+    /* #controls は質問欄に合わせた幅なので、この行だけは折り返さずはみ出させる */
+    white-space: nowrap;
+  }
+  @media (max-width: 760px) {
+    /* 仮想スティック(左下24〜144px)とスパンキングボタン(右下76〜196px)を避けて上へ。
+       畳んだ状態がデフォルト */
+    #controls { bottom: 206px; width: min(340px, 78vw); }
+    #key-hint { display: none; } /* スマホは操作が違うので出さない */
+    #chat-toggle {
+      display: block; align-self: flex-start; width: 44px; height: 44px;
+      border: none; background: var(--paper); color: var(--ink); font-size: 20px;
+      font-family: inherit; cursor: pointer;
+      clip-path: polygon(12% 4%, 92% 0, 100% 82%, 84% 100%, 4% 94%, 0 16%);
+      filter: drop-shadow(2px 2px 0 var(--pk));
+    }
+    #controls.collapsed #chat-row { display: none; }
+  }
+  #chat-row { display: flex; gap: 6px; }
+  #chat-input {
+    flex: 1; border: none; padding: 10px 14px;
+    font-size: 16px; font-family: inherit; background: rgba(255,255,255,.94); color: var(--ink);
+    outline: none; touch-action: manipulation;
+    clip-path: polygon(0 0, 100% 4%, 99% 100%, 1% 96%);
+    transform: skew(-5deg);
+  }
+  button { touch-action: manipulation; }
+  #chat-send {
+    border: none; padding: 10px 18px; font-size: 14px;
+    font-family: var(--hf); cursor: pointer; background: var(--pk); color: #fff;
+    white-space: nowrap;
+    clip-path: polygon(8% 0, 100% 0, 94% 100%, 0 96%);
+    transform: skew(-5deg);
+  }
+  #chat-send:hover { background: var(--pk-deep); }
+
+  /* 吹き出しは斜め四角+ポリゴンのしっぽ(clip-pathで一体成型) */
+  #bubble {
+    position: fixed; z-index: 6; max-width: 260px; pointer-events: none;
+    background: var(--paper); padding: 10px 14px 20px; font-size: 14px;
+    color: var(--ink); filter: drop-shadow(3px 3px 0 rgba(0,0,0,.4));
+    clip-path: polygon(1% 6%, 100% 0, 98% 84%, 57% 88%, 50% 100%, 44% 88%, 0 93%);
+    transform: translate(-50%, -100%); display: none; line-height: 1.5;
+  }
+  /* 話し手が画面外のときは画面上部に固定表示(どこを向いていてもセリフが読める)。
+     しっぽ無しの斜め四角に切り替える */
+  #bubble.pinned, #hoshi-bubble.pinned { transform: translate(-50%, 0); }
+  #bubble.pinned, #hoshi-bubble.pinned, #carrie-bubble.pinned {
+    clip-path: polygon(1% 6%, 100% 0, 98% 94%, 0 100%);
+    padding-bottom: 12px;
+  }
+
+  #hoshi-bubble {
+    position: fixed; z-index: 6; max-width: 240px; pointer-events: none;
+    background: var(--pk-pale); padding: 8px 12px 18px; font-size: 13px;
+    color: #7a2c50; font-weight: bold; filter: drop-shadow(3px 3px 0 rgba(224,53,111,.75));
+    clip-path: polygon(0 8%, 99% 0, 100% 82%, 57% 87%, 50% 100%, 44% 87%, 2% 94%);
+    transform: translate(-50%, -100%); display: none; line-height: 1.5;
+  }
+  #carrie-bubble.pinned { transform: translate(-50%, 0); }
+  #carrie-bubble {
+    position: fixed; z-index: 6; max-width: 220px; pointer-events: none;
+    background: #2a2d33; padding: 7px 12px 17px; font-size: 13px;
+    color: #dfe3e8; letter-spacing: 1px; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.55));
+    clip-path: polygon(0 0, 100% 3%, 99% 84%, 57% 88%, 50% 100%, 44% 88%, 1% 94%);
+    transform: translate(-50%, -100%); display: none; line-height: 1.5;
+  }
+
+  .slap-pop {
+    position: fixed; z-index: 7; pointer-events: none; font-weight: bold;
+    color: #ff5f7a; font-size: 26px; text-shadow: 0 2px 6px rgba(0,0,0,.4);
+    animation: slapPop .7s ease-out forwards;
+  }
+  @keyframes slapPop {
+    0% { transform: translate(-50%,-50%) scale(.4) rotate(-8deg); opacity: 1; }
+    60% { transform: translate(-50%,-90%) scale(1.3) rotate(6deg); opacity: 1; }
+    100% { transform: translate(-50%,-130%) scale(1.1) rotate(6deg); opacity: 0; }
+  }
+
+  /* フィーバータイム */
+  #fever-banner {
+    position: fixed; top: 100px; left: 50%; z-index: 7;
+    transform: translateX(-50%) skew(-6deg) rotate(-2deg);
+    display: none; pointer-events: none; text-align: center;
+    font-family: var(--hf); font-size: 24px; letter-spacing: 2px; color: #fff;
+    white-space: nowrap;
+    background: repeating-linear-gradient(-45deg, var(--pk) 0 18px, var(--pk-deep) 18px 36px);
+    clip-path: polygon(3% 0, 100% 10%, 97% 100%, 0 90%);
+    padding: 10px 32px; text-shadow: 2px 2px 0 var(--ink);
+    filter: drop-shadow(5px 5px 0 rgba(0,0,0,.4));
+    animation: feverPulse .5s ease-in-out infinite alternate;
+  }
+  #fever-banner.show { display: block; }
+  #fever-banner .fever-sec { font-size: 17px; color: var(--pk-pale); }
+  @media (max-width: 560px) {
+    #fever-banner { font-size: 16px; padding: 8px 18px; top: 118px; }
+    #fever-banner .fever-sec { font-size: 13px; }
+    #toast-area { top: 168px; }
+  }
+  @keyframes feverPulse {
+    from { transform: translateX(-50%) skew(-6deg) rotate(-2deg) scale(1); }
+    to { transform: translateX(-50%) skew(-6deg) rotate(-2deg) scale(1.06); }
+  }
+  #slap-counter.fever {
+    background: linear-gradient(100deg, var(--pk-deep), #7b2d8e);
+    color: #fff;
+  }
+  #slap-counter.fever #slap-count { color: #fff; }
+  #slap-counter.fever #equip-line { background: var(--ink); }
+
+  #stage-flash {
+    position: fixed; inset: 0; z-index: 8; pointer-events: none;
+    background: #fff; opacity: 0; transition: opacity 1.2s;
+  }
+  #stage-flash.on { opacity: .85; transition: opacity .05s; }
+  /* 素手エンドの変身ホワイトアウト(ゆっくり白→星が現れる) */
+  #stage-flash.whiteout { opacity: 1; transition: opacity .9s ease-in; }
+
+  #ending {
+    position: fixed; inset: 0; z-index: 20; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+    /* 背後の飛行アニメが見えるよう、かなり薄いオーバーレイに */
+    background: radial-gradient(ellipse at 50% 40%, rgba(20,16,60,.28), rgba(0,0,8,.5));
+    color: #fff; text-align: center; opacity: 0; transition: opacity 2s;
+  }
+  #ending.show { display: flex; }
+  #ending.visible { opacity: 1; }
+  /* 縦センタリングだと内容が画面より高いとき上端が切れるので、上詰め+スクロール */
+  #ending { overflow-y: auto; padding: 30px 16px; justify-content: flex-start; }
+  #ending h2 {
+    font-family: var(--hf); font-weight: normal; font-size: 34px; letter-spacing: 6px;
+    transform: skew(-6deg);
+    text-shadow: 2px 2px 0 var(--pk-deep), 0 0 24px rgba(255,79,139,.75);
+  }
+  #ending .sub { font-size: 15px; opacity: .85; line-height: 2; }
+  #ending .stars { font-size: 28px; letter-spacing: 12px; }
+
+  /* ---- 結果画面(整理版) ---- */
+  #ending-stats { max-width: 620px; width: 100%; }
+  .end-summary {
+    font-size: 14px; opacity: .9; margin-bottom: 14px;
+    display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
+  }
+  .end-summary b { color: var(--pk-pale); }
+  .end-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px; margin-bottom: 14px;
+  }
+  .end-card {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 10px 8px;
+  }
+  .end-card .end-label { font-size: 12px; opacity: .75; }
+  .end-card .end-big { font-size: 22px; font-weight: bold; margin: 2px 0; }
+  .end-card .end-big small { font-size: 13px; opacity: .7; font-weight: normal; }
+  .end-card .end-note { font-size: 11px; line-height: 1.6; opacity: .8; }
+  .end-card .end-note.comp { color: var(--pk-pale); }
+  .end-section-title { font-size: 12px; opacity: .65; margin: 10px 0 6px; letter-spacing: 2px; }
+  .end-clicks {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+    gap: 3px 12px; font-size: 12px; opacity: .85; text-align: left;
+    background: rgba(255,255,255,.05); border-radius: 12px; padding: 10px 14px;
+  }
+  .end-clicks span { white-space: nowrap; }
+  .end-clicks span b { color: var(--pk-pale); font-weight: bold; }
+  /* 右下ボタン群: 図鑑・設定・ヘルプ */
+  #zukan-btn, #settings-btn, #photo-btn,
+  #help-btn {
+    position: fixed; right: 16px; bottom: 16px; z-index: 9;
+    width: 46px; height: 46px; border: none;
+    background: var(--paper); color: var(--ink); font-size: 22px; font-weight: bold;
+    font-family: inherit; cursor: pointer;
+    clip-path: polygon(12% 4%, 92% 0, 100% 82%, 84% 100%, 4% 94%, 0 16%);
+    transform: rotate(-4deg);
+    filter: drop-shadow(3px 3px 0 var(--pk));
+    transition: transform .12s, background .12s;
+  }
+  #zukan-btn:hover, #settings-btn:hover, #help-btn:hover, #photo-btn:hover {
+    background: var(--pk); color: #fff; transform: rotate(4deg) scale(1.08);
+  }
+  #settings-btn { right: 70px; font-size: 19px; }
+  #zukan-btn { right: 124px; font-size: 19px; }
+  /* カメラ(写真モード)ボタンはピンクにして目立たせる */
+  #photo-btn {
+    right: 178px; font-size: 19px;
+    background: var(--pk); color: #fff;
+    filter: drop-shadow(3px 3px 0 var(--ink));
+  }
+  #photo-btn:hover { background: var(--pk-deep); }
+
+  /* ===== 写真モード ===== */
+  /* エンディング演出中や写真モード自身の間は写真ボタンを隠す(body.photo-on / cine-on) */
+  body.photo-on #photo-btn { display: none; }
+  #photo-ui {
+    position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 24;
+    width: min(430px, 94vw); max-height: 52vh; overflow-y: auto;
+    background: linear-gradient(160deg, #352939, var(--ink) 70%);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    filter: drop-shadow(5px 5px 0 rgba(0,0,0,.45));
+    padding: 10px 14px 12px; color: #fff; font-size: 12px; display: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  #photo-ui.show { display: block; }
+  #photo-ui .ph-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  #photo-ui .ph-title {
+    font-family: var(--hf); font-size: 14px; color: var(--pk); white-space: nowrap;
+    transform: skew(-6deg); text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  #photo-ui .ph-headbtns { margin-left: auto; display: flex; gap: 8px; }
+  .ph-btn {
+    border: none; padding: 6px 14px; cursor: pointer; font-family: inherit;
+    font-size: 12px; font-weight: bold; background: rgba(255,255,255,.14); color: #fff;
+    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  }
+  .ph-btn:hover { background: rgba(255,255,255,.26); }
+  .ph-btn.main { background: var(--paper); color: var(--ink); }
+  .ph-btn.main:hover { background: var(--pk); color: #fff; }
+  .ph-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .ph-label { flex: none; width: 72px; font-size: 11px; opacity: .75; }
+  .ph-opts { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+  .ph-chip {
+    border: none; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: 11px; background: rgba(255,255,255,.12); color: #fff;
+    clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  }
+  .ph-chip:hover { background: rgba(255,255,255,.24); }
+  .ph-chip.on { background: var(--pk); font-weight: bold; }
+  /* 画面に写る要素(ドラッグで移動・−+で拡縮できる) */
+  #photo-logo {
+    position: fixed; top: 10px; left: 12px; z-index: 23; width: 190px;
+    display: none; cursor: move; touch-action: none; user-select: none;
+    -webkit-user-select: none;
+  }
+  #photo-logo.show { display: block; }
+  #photo-count {
+    position: fixed; top: 16px; right: 16px; z-index: 23; display: none;
+    color: #fff; font-size: 15px; font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,.65), 0 0 10px rgba(0,0,0,.4);
+    cursor: move; touch-action: none; user-select: none; -webkit-user-select: none;
+    white-space: nowrap;
+  }
+  #photo-count.show { display: block; }
+  #photo-count .ph-count1 { display: block; font-size: .8em; letter-spacing: 1px; }
+  #photo-count .ph-count2 {
+    display: block; font-family: var(--hf); font-weight: normal; color: var(--pk);
+    font-size: 1.5em; line-height: 1.2; text-align: right;
+  }
+  #photo-count .ph-count2 b { font-weight: normal; color: var(--pk); margin-left: 2px; }
+  /* 拡縮ボタン(UIパネルを開いている間だけ出る編集用ツマミ。スクショには写らない扱い) */
+  .ph-size { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); display: none; gap: 4px; }
+  body.photo-edit #photo-logo.show .ph-size,
+  body.photo-edit #photo-count.show .ph-size { display: flex; }
+  .ph-size button {
+    width: 26px; height: 26px; border: none; cursor: pointer; font-size: 15px; line-height: 1;
+    background: var(--paper); color: var(--ink); font-weight: bold;
+    clip-path: polygon(10% 0, 100% 6%, 92% 100%, 0 92%);
+  }
+  .ph-size button:hover { background: var(--pk); color: #fff; }
+  /* サイクル式セレクタ */
+  .ph-cycle { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+  .ph-arrow {
+    flex: none; width: 30px; height: 26px; border: none; cursor: pointer;
+    background: rgba(255,255,255,.14); color: #fff; font-size: 11px;
+    clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+  }
+  .ph-arrow:hover { background: var(--pk); }
+  .ph-val {
+    flex: 1; min-width: 0; text-align: center; font-size: 12px; font-weight: bold;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* 長い名前(カード名など)は折り返して全文を見せる */
+  .ph-val.wrap { white-space: normal; text-overflow: clip; line-height: 1.35; }
+  /* カード行: 1行目=◀ 名前(全文) ▶ / 2行目=残数バッジ+追加/全削除 */
+  .ph-row.cardrow .ph-cycle { flex-basis: calc(100% - 84px); }
+  .ph-row.cardrow .ph-leftbadge { margin-left: 80px; }
+  /* カードの残り枚数バッジ(名前とは別枠) */
+  .ph-leftbadge {
+    flex: none; align-self: center; font-size: 11px; font-weight: bold;
+    color: var(--ink); background: var(--pk-pale); padding: 3px 10px;
+    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+    white-space: nowrap;
+  }
+  .ph-leftbadge.zero { background: #6a5f6e; color: #d8ccd8; }
+  .ph-note { flex-basis: 100%; font-size: 10px; opacity: .55; margin-top: 3px; }
+  /* 最小化: 背景以下(②③)とヒントをたたむ。選択中欄(①)とヘッダは残す */
+  #photo-ui.mini .ph-g2, #photo-ui.mini .ph-g3, #photo-ui.mini > .ph-note { display: none; }
+  /* 設定パネルの3グループ色分け: ①選択中(ピンク) ②被写体(白) ③カメラ・演出(青) */
+  .ph-group {
+    margin-top: 8px; padding: 6px 10px 8px;
+    clip-path: polygon(0 0, 100% 0, 99.4% 100%, 0.6% 100%);
+  }
+  .ph-g1 { background: rgba(255,79,139,.18); border-left: 3px solid var(--pk); }
+  .ph-g2 { background: rgba(255,255,255,.06); border-left: 3px solid rgba(255,255,255,.4); }
+  .ph-g3 { background: rgba(110,140,255,.14); border-left: 3px solid #8fb0ff; }
+  .ph-group .ph-row:first-child { margin-top: 0; }
+  .ph-selname {
+    font-size: 12px; font-weight: bold; color: var(--pk-pale);
+    align-self: center; margin-right: 4px;
+  }
+  /* 写真モードのスタンプ(ロゴ/累計pt/お尻/おしり文字)。ドラッグで移動できる2Dオーバーレイ */
+  .ph-stamp {
+    position: fixed; z-index: 23; cursor: move; touch-action: none;
+    user-select: none; -webkit-user-select: none; line-height: 1.1;
+  }
+  .ph-stamp svg { display: block; width: 100%; height: auto; pointer-events: none; }
+  .ph-stamp.sel { outline: 2px dashed var(--pk); outline-offset: 5px; }
+  /* 情報スタンプ共通(累計pt/叩いた回数/一番叩いたアイテム) */
+  .ph-stamp.info {
+    color: #fff; font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,.65), 0 0 10px rgba(0,0,0,.4);
+  }
+  .ph-stamp.count { white-space: nowrap; }
+  .ph-stamp.slaps, .ph-stamp.topitem { max-width: 15em; }
+  .ph-stamp.info .ph-count1 { display: block; font-size: .8em; letter-spacing: 1px; line-height: 1.3; }
+  .ph-stamp.info .ph-count2 {
+    display: block; font-family: var(--hf); font-weight: normal; color: var(--pk);
+    font-size: 1.5em; line-height: 1.2; text-align: right;
+  }
+  .ph-stamp.info .ph-count2 b { font-weight: normal; margin-left: 2px; }
+  .ph-stamp.info .ph-count2.gold { color: #ffd76e; }
+  .ph-stamp.info .ph-count2.mint { color: #8fffba; }
+  /* おしり文字4種: フォントと色を大きく変えてある(保存時のcanvas描画と揃えること) */
+  .ph-stamp.t1 {
+    font-family: var(--hf); color: var(--pk);
+    text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff,
+      2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+  }
+  .ph-stamp.t2 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-weight: 800; color: #c22843;
+    text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff,
+      2px 2px 0 #fff, -2px -2px 0 #fff;
+  }
+  .ph-stamp.t3 {
+    font-family: "Hiragino Sans", sans-serif; font-weight: 900; color: #fff;
+    transform: skew(-10deg);
+    text-shadow: 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 2px 0 var(--ink), 0 -2px 0 var(--ink),
+      3px 3px 0 var(--ink);
+  }
+  .ph-stamp.t4 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-weight: 900; color: #ffd76e;
+    text-shadow: 2px 0 0 #3a2408, -2px 0 0 #3a2408, 0 2px 0 #3a2408, 0 -2px 0 #3a2408,
+      3px 3px 6px rgba(0,0,0,.5);
+  }
+
+  /* 写真モードのキャラ個別吹き出し(全キャラに常時付く)。見た目はゲームの吹き出しと同型 */
+  .ph-bub {
+    position: fixed; z-index: 6; max-width: 240px; pointer-events: none;
+    transform: translate(-50%, -100%); line-height: 1.5;
+    padding: 9px 13px 18px; font-size: 13px;
+    clip-path: polygon(1% 6%, 100% 0, 98% 84%, 57% 88%, 50% 100%, 44% 88%, 0 93%);
+  }
+  .ph-bub.w {
+    background: var(--paper); color: var(--ink); font-size: 14px;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,.4));
+  }
+  .ph-bub.p {
+    background: var(--pk-pale); color: #7a2c50; font-weight: bold;
+    filter: drop-shadow(3px 3px 0 rgba(224,53,111,.75));
+  }
+  .ph-bub.d {
+    background: #2a2d33; color: #dfe3e8; letter-spacing: 1px;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,.55));
+  }
+  /* UIを隠したときに戻すための小さなつまみ */
+  #photo-peek {
+    position: fixed; right: 10px; bottom: 10px; z-index: 24; display: none;
+    width: 30px; height: 30px; border: none; cursor: pointer; font-size: 13px;
+    background: rgba(255,255,255,.35); color: var(--ink);
+    clip-path: polygon(12% 4%, 92% 0, 100% 82%, 84% 100%, 4% 94%, 0 16%);
+  }
+  #photo-peek.show { display: block; }
+  @media (max-width: 560px) {
+    #photo-logo { width: 132px; }
+    #photo-ui { font-size: 11px; max-height: 52vh; }
+    .ph-label { width: 54px; }
+  }
+  /* スパンキングボタン(スマホのみ): 照準位置=画面中央をクリック扱いにする。
+     設定ボタン(44px)の約3倍・左下の仮想スティック(120px)と左右対称のサイズ */
+  #spank-btn {
+    position: fixed; right: 20px; bottom: 76px; z-index: 9;
+    display: none; width: 120px; height: 120px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.5);
+    background: radial-gradient(circle at 38% 32%, rgba(255,143,179,.6), rgba(224,53,111,.55));
+    color: #fff; font-size: 46px; font-family: inherit; cursor: pointer;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6); touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #spank-btn.show { display: block; }
+  #spank-btn:active { transform: scale(.92); background: radial-gradient(circle at 38% 32%, rgba(255,160,200,.8), rgba(255,60,120,.7)); }
+  /* ===== カード(おしりバトルダイス) =====
+     枠・文字・アイコンは全てDOM。イラストだけ assets/cards/<id>.jpg を差し込む。 */
+  .pcard {
+    --frame: #c9a227; --deep: #2a1c10;
+    width: 340px; height: 502px; flex: none;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; border-radius: 14px;
+    background: linear-gradient(160deg, var(--frame), var(--deep) 62%);
+    box-shadow: 0 6px 22px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.18);
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    color: #f4ead6; user-select: none;
+  }
+  .pcard-power  { --frame: #d1452f; --deep: #3a1108; }
+  .pcard-mecha  { --frame: #3f86c4; --deep: #0d2338; }
+  .pcard-occult { --frame: #8b57c9; --deep: #241038; }
+  .pcard-event  { --frame: #b9873f; --deep: #2c1c0c; }
+  /* レアカードは金枠+ホロ。一目でレアと分かるようにする */
+  .pcard-rare {
+    position: relative;
+    background:
+      linear-gradient(160deg, #fff3bd 0%, #e8b64a 16%, #8a5f14 34%, #ffe9a8 50%,
+                      #8a5f14 66%, #e8b64a 84%, #fff3bd 100%);
+    box-shadow: 0 8px 30px rgba(0,0,0,.7), inset 0 0 0 2px #fff6cf,
+                0 0 26px rgba(255,214,110,.65);
+    animation: rareGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes rareGlow {
+    0%, 100% { box-shadow: 0 8px 30px rgba(0,0,0,.7), inset 0 0 0 2px #fff6cf, 0 0 22px rgba(255,214,110,.5); }
+    50%      { box-shadow: 0 8px 30px rgba(0,0,0,.7), inset 0 0 0 2px #fff6cf, 0 0 40px rgba(255,214,110,.95); }
+  }
+  /* 枠の上を斜めに走る虹色のホロ */
+  .pcard-rare::before {
+    content: ""; position: absolute; inset: 0; border-radius: 14px; pointer-events: none; z-index: 4;
+    background: linear-gradient(66deg, transparent 38%, rgba(255,255,255,.55) 46%,
+                rgba(180,240,255,.5) 50%, rgba(255,190,255,.5) 54%, transparent 62%);
+    background-size: 260% 260%;
+    animation: rareHolo 3.4s linear infinite;
+    mix-blend-mode: screen;
+  }
+  @keyframes rareHolo { from { background-position: 130% 0; } to { background-position: -130% 0; } }
+  .pcard-rare .pcard-head { box-shadow: inset 0 0 0 1px rgba(255,240,190,.55); }
+  .pcard-rare .pcard-art { box-shadow: 0 0 0 2px rgba(255,240,190,.6); }
+  .pcard-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 4px 9px; border-radius: 7px;
+    background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,.25));
+    border: 1px solid rgba(255,255,255,.22);
+  }
+  .pcard-name { font-size: 16px; font-weight: bold; letter-spacing: .5px; line-height: 1.2; }
+  .pcard-no { font-size: 11px; flex: none; font-family: ui-monospace, SFMono-Regular, monospace;
+    font-weight: bold; letter-spacing: .05em; opacity: .85; }
+  .pcard-art {
+    position: relative; height: 243px; border-radius: 6px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.25); background: #14100c;
+  }
+  .pcard-art-tall { height: 300px; }
+  .pcard-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pcard-art-ph {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+    color: rgba(255,255,255,.32); font-size: 15px; letter-spacing: 3px;
+    background: repeating-linear-gradient(45deg, #1b1510 0 10px, #221a13 10px 20px);
+  }
+  .pcard-art-ph small { font-size: 10px; letter-spacing: 1px; }
+  .pcard-type {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 2px 9px; border-radius: 5px; font-size: 11px;
+    background: rgba(0,0,0,.42); border: 1px solid rgba(255,255,255,.16);
+  }
+  .pcard-hp { font-weight: bold; color: #ffd76e; font-size: 13px; }
+  .pcard-body {
+    flex: 1; min-height: 0; padding: 6px 8px; border-radius: 6px;
+    background: linear-gradient(180deg, #f6efdd, #e6dcc2);
+    border: 1px solid rgba(0,0,0,.35); color: #2b2418; overflow: hidden;
+  }
+  .pcard-face {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 10.5px; line-height: 1.3; padding: 2.5px 0;
+  }
+  .pcard-face + .pcard-face { border-top: 1px solid rgba(0,0,0,.12); }
+  /* 面テキストが長いカード(占い少年マイケル等)は文字を詰めて枠内に収める */
+  .pcard-dense .pcard-face { font-size: 9px; line-height: 1.2; padding: 2px 0; }
+  .pcard-dense .pcard-pip { width: 14px; height: 14px; margin-top: 0; }
+  /* サイコロの目はフォント依存(⚀⚁…は環境で豆腐になる)なのでCSSで描く */
+  .pcard-pip {
+    flex: none; width: 16px; height: 16px; margin-top: 1px; border-radius: 3px;
+    background-color: #fdfaf2; border: 1px solid #6b3f1d;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.6);
+    background-repeat: no-repeat;
+  }
+  /* 各レイヤーはボックス全面なのでbackground-positionでは動かせない。
+     ドットの位置はグラデーション内の at X% Y% で指定する。 */
+  .pcard-pip { --d: #5a3315; --r: 1.8px; }
+  .pip-1 { background-image:
+    radial-gradient(circle var(--r) at 50% 50%, var(--d) 98%, transparent 100%); }
+  .pip-2 { background-image:
+    radial-gradient(circle var(--r) at 27% 27%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 73% 73%, var(--d) 98%, transparent 100%); }
+  .pip-3 { background-image:
+    radial-gradient(circle var(--r) at 24% 24%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 50% 50%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 76% 76%, var(--d) 98%, transparent 100%); }
+  .pip-4 { background-image:
+    radial-gradient(circle var(--r) at 28% 28%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 72% 28%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 28% 72%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 72% 72%, var(--d) 98%, transparent 100%); }
+  .pip-5 { background-image:
+    radial-gradient(circle var(--r) at 26% 26%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 74% 26%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 50% 50%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 26% 74%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 74% 74%, var(--d) 98%, transparent 100%); }
+  .pip-6 { background-image:
+    radial-gradient(circle var(--r) at 28% 22%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 28% 50%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 28% 78%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 72% 22%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 72% 50%, var(--d) 98%, transparent 100%),
+    radial-gradient(circle var(--r) at 72% 78%, var(--d) 98%, transparent 100%); }
+  .pcard-text { font-size: 13px; line-height: 1.6; padding: 4px 2px; }
+  .pcard-flavor {
+    margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(0,0,0,.18);
+    font-size: 10.5px; font-style: italic; color: #6a5c45; line-height: 1.5;
+  }
+  .pcard-mini { width: 112px; height: 155px; padding: 4px; gap: 2px; }
+  .pcard-mini .pcard-name { font-size: 9px; }
+  .pcard-mini .pcard-art { height: 80px; }
+  .pcard-mini .pcard-type, .pcard-mini .pcard-body { display: none; }
+
+  /* ===== HELL 9000 のショップ/デッキ構築/対戦メニュー ===== */
+  #hell-overlay {
+    position: fixed; inset: 0; z-index: 26; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(4,8,14,.9);
+  }
+  #hell-overlay.show { display: flex; }
+  #hell-panel {
+    width: min(920px, 100%); max-height: 92vh; display: flex; flex-direction: column;
+    overflow: hidden; color: #f4ecf2;
+    background: linear-gradient(180deg, #352939, #171019);
+    border: none;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+  }
+  #hell-head {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: linear-gradient(90deg, rgba(255,79,139,.30), rgba(43,33,48,.35));
+    border-bottom: 1px solid rgba(255,143,179,.3);
+  }
+  #hell-title {
+    font-family: var(--hf); font-size: 18px; letter-spacing: 2px; color: var(--pk);
+    transform: skew(-6deg); text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  #hell-sub { font-size: 11px; opacity: .65; }
+  #hell-points { margin-left: auto; font-size: 14px; font-weight: bold; color: var(--pk-pale); }
+  #hell-close {
+    width: 32px; height: 32px; border: none;
+    background: var(--paper); color: var(--ink); font-size: 17px; cursor: pointer;
+    font-family: inherit;
+    clip-path: polygon(12% 4%, 92% 0, 100% 82%, 84% 100%, 4% 94%, 0 16%);
+  }
+  #hell-close:hover { background: var(--pk); color: #fff; }
+  #hell-body { padding: 18px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .hell-line { font-size: 13px; line-height: 1.7; opacity: .85; margin-bottom: 14px; }
+  .hell-menu { display: flex; flex-direction: column; gap: 10px; }
+  .hell-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 14px 16px; cursor: pointer; font-family: inherit;
+    color: #fff; font-size: 15px; font-weight: bold;
+    background: linear-gradient(90deg, rgba(255,79,139,.24), rgba(60,42,62,.28));
+    border: 1px solid rgba(255,143,179,.32);
+    clip-path: polygon(1% 0, 100% 0, 99% 100%, 0 100%);
+  }
+  .hell-btn:hover { background: linear-gradient(90deg, rgba(255,79,139,.4), rgba(80,50,80,.35)); }
+  .hell-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .hell-btn small { display: block; font-size: 11px; font-weight: normal; opacity: .7; margin-top: 3px; }
+  .hell-btn .hell-cost { margin-left: auto; color: var(--pk-pale); font-size: 14px; white-space: nowrap; }
+  .hell-btn .hell-cost.short { color: #ff8b8b; }
+  .hell-packs { display: flex; flex-direction: column; gap: 12px; }
+  .hell-back {
+    margin-top: 16px; padding: 9px 18px; cursor: pointer;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22);
+    color: #fff; font-family: inherit; font-size: 13px;
+    clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  }
+  .hell-back:hover { background: rgba(255,255,255,.2); }
+  /* パック開封 */
+  .hell-open { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .hell-open .pcard {
+    animation: cardIn .45s cubic-bezier(.2,1.3,.4,1) backwards;
+    transform-origin: 50% 100%;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(26px) rotate(-6deg) scale(.85); }
+    to { opacity: 1; transform: none; }
+  }
+  /* NEWバッジはカード名に被らないよう、アート枠の左上に載せる */
+  .hell-new {
+    position: absolute; top: 46px; left: 16px; z-index: 2; padding: 2px 7px; border-radius: 5px;
+    background: #ff2d55; color: #fff; font-size: 10px; font-weight: bold; letter-spacing: 1px;
+    font-family: "Hiragino Sans", sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  }
+  /* スターターのように大量に出るときは、枠ではなく一覧で見せる */
+  .hell-list { display: flex; flex-wrap: wrap; gap: 7px; }
+  .hell-list-item {
+    display: flex; align-items: center; gap: 7px; width: calc(50% - 4px);
+    padding: 7px 10px; border-radius: 7px; font-size: 12px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+  }
+  .hell-list-item .q { margin-left: auto; color: var(--pk-pale); font-weight: bold; }
+  .hell-list-item .a { flex: none; width: 16px; text-align: center; }
+  @media (max-width: 760px) { .hell-list-item { width: 100%; } }
+  .hell-cardwrap { position: relative; }
+  /* デッキ構築 */
+  .hell-deckbar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 12px; margin-bottom: 12px;
+    background: rgba(0,0,0,.3); border: 1px solid rgba(255,143,179,.28); font-size: 13px;
+    clip-path: polygon(.6% 0, 100% 0, 99.4% 100%, 0 100%);
+  }
+  .hell-deckbar .ok { color: #7dffab; }
+  .hell-deckbar .ng { color: #ff8b8b; }
+  .hell-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hell-slot {
+    width: 132px; padding: 7px 8px; border-radius: 8px; cursor: pointer;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16);
+    font-size: 11px; line-height: 1.35;
+  }
+  /* 確定できる状態のボタン(モンスター5/5・イベント10/10) */
+  .hell-btn.hell-ready {
+    background: linear-gradient(135deg, #ff6fa5, #d8317a);
+    border-color: #ffa8c8; color: #fff;
+    box-shadow: 0 0 18px rgba(255,110,165,.5);
+    animation: readyPulse 1.6s ease-in-out infinite;
+  }
+  .hell-btn.hell-ready:hover { filter: brightness(1.08); }
+  /* デッキ構築の下部ボタン列(キャンセル/確定) */
+  .hell-deckfoot { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .hell-deckfoot .hell-back { margin-top: 0; }
+  .hell-btn.hell-save { width: auto; display: inline-flex; padding: 9px 26px; font-size: 13px; }
+  @keyframes readyPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255,110,165,.4); }
+    50%      { box-shadow: 0 0 26px rgba(255,110,165,.85); }
+  }
+  .hell-slot {
+    position: relative; padding-right: 26px;
+    /* 長押しで−1する操作なので、選択・コピー吹き出し・タップ時のハイライトを止める */
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* モンスターとイベントを色で分ける */
+  .hell-slot.mon { border-left: 4px solid #ff9a6e; }
+  .hell-slot.ev  { border-left: 4px solid #8fb4ff; }
+  .hell-slot.mon.in { border-color: #ff9a6e; background: rgba(230,120,70,.24); }
+  .hell-slot.ev.in  { border-color: #8fb4ff; background: rgba(90,130,230,.24); }
+  .hell-slot .n { float: right; font-weight: bold; color: var(--pk-pale); }
+  .hell-slot .k { display: block; font-size: 9.5px; opacity: .6; margin-top: 2px; }
+  .hell-zoom {
+    position: absolute; right: 3px; bottom: 3px; width: 22px; height: 22px; padding: 0;
+    border-radius: 6px; cursor: pointer; font-size: 11px; line-height: 1;
+    background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.28); color: #fff;
+  }
+  .hell-zoom:hover { background: rgba(255,255,255,.22); }
+  .hell-zoomview {
+    position: fixed; inset: 0; z-index: 30; display: flex; align-items: center;
+    justify-content: center; background: rgba(4,8,14,.9); cursor: zoom-out;
+  }
+  @media (max-width: 760px) {
+    #hell-body { padding: 14px 12px; }
+    .hell-slot { width: calc(50% - 4px); }
+  }
+
+  /* 寄り演出/乱入演出の間はHUDを引っこめて、画をきれいに見せる */
+  /* オーバーレイ表示中は照準を消す(カード画面の真ん中に十字が残るため) */
+  body.overlay-busy .fpsc-crosshair { display: none !important; }
+
+  body.cine-on #title-bar, body.cine-on #slap-counter, body.cine-on #controls,
+  body.cine-on #zukan-btn, body.cine-on #settings-btn, body.cine-on #help-btn,
+  body.cine-on #photo-btn,
+  body.cine-on #spank-btn, body.cine-on .fpsc-crosshair,
+  body.cine-on #bubble, body.cine-on #hoshi-bubble, body.cine-on #carrie-bubble {
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+
+  /* ===== エンディング選択(100万pt到達時) ===== */
+  #end-choice {
+    position: fixed; inset: 0; z-index: 26; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(8,6,14,.78);
+  }
+  #end-choice.show { display: flex; }
+  #end-choice-card {
+    background: linear-gradient(160deg, #352939, var(--ink) 70%);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+    padding: 22px 26px; width: min(420px, 92vw); color: #fff;
+    display: flex; flex-direction: column; gap: 12px; text-align: center;
+  }
+  #end-choice-card h3 {
+    font-family: var(--hf); font-weight: normal; font-size: 20px; color: var(--pk);
+    transform: skew(-6deg); text-shadow: 2px 2px 0 rgba(0,0,0,.55);
+  }
+  #end-choice-card p { font-size: 13px; line-height: 1.7; opacity: .9; }
+  #end-choice-card button {
+    border: none; padding: 12px 18px; cursor: pointer; font-family: var(--hf);
+    font-size: 15px; color: var(--ink); background: var(--paper);
+    clip-path: polygon(2% 0, 100% 6%, 98% 100%, 0 94%);
+    transition: background .12s, color .12s;
+  }
+  #end-choice-card button small {
+    display: block; font-family: "Hiragino Maru Gothic ProN", sans-serif;
+    font-size: 11px; opacity: .7; margin-top: 3px;
+  }
+  #end-choice-card button:hover { background: var(--pk); color: #fff; }
+  #end-choice-card button:hover small { opacity: .9; }
+
+  /* 写真モード中はゲームHUDを消す(吹き出しは写す対象なので残す) */
+  body.photo-on #title-bar, body.photo-on #slap-counter, body.photo-on #controls,
+  body.photo-on #zukan-btn, body.photo-on #settings-btn, body.photo-on #help-btn,
+  body.photo-on #spank-btn, body.photo-on .fpsc-crosshair,
+  body.photo-on #toast-area, body.photo-on #fever-banner {
+    display: none !important;
+  }
+
+  /* ===== 対戦後の寄り演出のセリフ(映画の字幕風) ===== */
+  #cine-caption {
+    position: fixed; left: 50%; bottom: 12%; z-index: 27; display: none;
+    transform: translateX(-50%); max-width: min(680px, 88vw); padding: 12px 20px;
+    border-radius: 10px; text-align: center; pointer-events: none;
+    background: rgba(24,16,26,.85); border: 1px solid rgba(255,143,179,.45);
+    color: #fff; font-size: 16px; line-height: 1.6; font-family: "Hiragino Sans", sans-serif;
+    text-shadow: 0 2px 8px rgba(0,0,0,.9);
+  }
+  #cine-caption.show { display: block; animation: cineIn .4s ease-out; }
+  #cine-caption b { display: block; font-size: 12px; letter-spacing: 2px; color: #ff9fc0; margin-bottom: 4px; }
+  @keyframes cineIn { from { opacity: 0; transform: translate(-50%, 14px); } }
+
+  /* ===== 対戦開始の乱入演出(ストリートファイター風) =====
+     背景は3D空間そのもの。カメラが相手キャラに寄っている上に文字を重ねる */
+  .bt-intro {
+    position: fixed; inset: 0; z-index: 24; overflow: hidden; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 34%, rgba(3,5,10,.72) 88%);
+  }
+  /* 画面を斜めに走り抜ける帯(通過したら消える) */
+  .bt-intro .band {
+    position: absolute; left: -30%; width: 160%; height: 22%;
+    background: linear-gradient(90deg, var(--pk-deep), #ff8a3d);
+    transform: skewY(-9deg); opacity: .9;
+  }
+  .bt-intro .band.b1 { top: 20%; animation: introSweep .75s cubic-bezier(.2,.85,.25,1) forwards; }
+  .bt-intro .band.b2 { top: 58%; background: linear-gradient(90deg, #2f7bff, #7a3dff);
+    animation: introSweepBack .75s .08s cubic-bezier(.2,.85,.25,1) forwards; }
+  @keyframes introSweep {
+    0% { transform: skewY(-9deg) translateX(-130%); }
+    55% { transform: skewY(-9deg) translateX(0); opacity: .9; }
+    100% { transform: skewY(-9deg) translateX(130%); opacity: 0; }
+  }
+  @keyframes introSweepBack {
+    0% { transform: skewY(-9deg) translateX(130%); }
+    55% { transform: skewY(-9deg) translateX(0); opacity: .9; }
+    100% { transform: skewY(-9deg) translateX(-130%); opacity: 0; }
+  }
+  .bt-intro .who {
+    position: absolute; z-index: 3; left: 0; right: 0; top: 12%; text-align: center;
+    font-size: clamp(26px, 7vw, 52px); font-weight: bold; letter-spacing: 4px; color: #fff;
+    text-shadow: 0 4px 0 #000, 0 0 24px rgba(255,90,60,.9);
+    animation: introWho .34s .18s cubic-bezier(.2,1.4,.4,1) backwards;
+  }
+  @keyframes introWho { from { transform: translateX(-40%); opacity: 0; } }
+  .bt-intro .vs {
+    position: absolute; z-index: 4; left: 0; right: 0; bottom: 14%; text-align: center;
+    font-size: clamp(30px, 9vw, 74px); font-weight: bold; letter-spacing: 6px;
+    color: #ff8fb3; -webkit-text-stroke: 2px #2b1220;
+    text-shadow: 0 0 30px rgba(255,79,139,.95);
+    animation: introSlamText .3s cubic-bezier(.2,1.6,.35,1) backwards;
+  }
+  @keyframes introSlamText {
+    from { transform: scale(3.2) rotate(-8deg); opacity: 0; filter: blur(10px); }
+  }
+  .bt-intro .shock {
+    position: absolute; z-index: 5; inset: 0; background: #fff; opacity: 0;
+    animation: introShock .22s ease-out;
+  }
+  @keyframes introShock { from { opacity: .95 } to { opacity: 0 } }
+  .bt-intro.out { animation: introOut .32s ease-in forwards; }
+  @keyframes introOut { to { opacity: 0; transform: scale(1.08); } }
+
+  /* ===== パック開封の演出(購入画面と勝利報酬で共用) ===== */
+  .pk-stage {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 6px 0 14px; text-align: center;
+  }
+  .pk-title {
+    font-family: var(--hf); font-size: 20px; color: var(--pk); letter-spacing: 2px;
+    transform: skew(-6deg); text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  .pk-sub { font-size: 11px; opacity: .65; margin-bottom: 6px; }
+  .pk-holder { position: relative; min-height: 230px; display: flex; align-items: center; justify-content: center; }
+  /* --- パック本体 --- */
+  .pk-pack {
+    position: relative; width: 168px; height: 226px; border-radius: 10px; cursor: pointer;
+    overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.65);
+    border: 2px solid rgba(255,255,255,.3);
+    animation: pkIdle 2.4s ease-in-out infinite;
+  }
+  .pk-pack.starter { background: linear-gradient(150deg, #caa06a, #6b4a2a 78%); }
+  .pk-pack.normal  { background: linear-gradient(150deg, #ffb36b, #ff6f91 45%, #3b2350 95%); }
+  .pk-pack.rare    { background: linear-gradient(150deg, #8f6bff, #2b1a5e 55%, #0b0718 95%); }
+  /* 斜めに走る光沢 */
+  .pk-foil {
+    position: absolute; inset: -40% -120%; pointer-events: none;
+    background: linear-gradient(72deg, transparent 42%, rgba(255,255,255,.42) 50%, transparent 58%);
+    animation: pkFoil 2.8s linear infinite;
+  }
+  /* パックの顔になるおしり */
+  .pk-butt {
+    position: absolute; left: 50%; top: 44%; width: 104px; height: 62px; margin: -31px 0 0 -52px;
+    background-color: transparent;
+    background-image:
+      linear-gradient(rgba(150,70,60,.6), rgba(150,70,60,.6)),
+      radial-gradient(circle 27px at 27% 50%, #ffc7bb 0 96%, transparent 97%),
+      radial-gradient(circle 27px at 73% 50%, #ffc7bb 0 96%, transparent 97%);
+    background-size: 3px 34px, 100% 100%, 100% 100%;
+    background-position: 50% 50%, 0 0, 0 0;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
+  }
+  .pk-label {
+    position: absolute; left: 0; right: 0; bottom: 14px; font-size: 12px; font-weight: bold;
+    letter-spacing: 1px; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.8);
+  }
+  /* 上辺のギザギザ(破り口) */
+  .pk-tear {
+    position: absolute; left: 0; right: 0; top: 0; height: 16px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.32) 0 6px, transparent 6px 12px);
+    border-bottom: 1px dashed rgba(255,255,255,.45);
+  }
+  .pk-pack.tearing { animation: pkShake .55s ease-in-out; }
+  .pk-pack.tearing .pk-tear { animation: pkTear .6s ease-in forwards; }
+  .pk-pack.gone { animation: pkGone .25s ease-in forwards; }
+  @keyframes pkIdle {
+    0%, 100% { transform: rotate(-2.5deg) translateY(0); }
+    50% { transform: rotate(2.5deg) translateY(-8px); }
+  }
+  @keyframes pkFoil { from { transform: translateX(-30%); } to { transform: translateX(30%); } }
+  @keyframes pkShake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    20% { transform: translateX(-9px) rotate(-4deg); }
+    45% { transform: translateX(8px) rotate(4deg); }
+    70% { transform: translateX(-6px) rotate(-2deg); }
+  }
+  @keyframes pkTear { to { transform: translateY(-24px) rotate(-9deg); opacity: 0; } }
+  @keyframes pkGone { to { transform: scale(1.25); opacity: 0; } }
+  .pk-flash {
+    position: absolute; inset: -60px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,245,200,.95), rgba(255,220,120,0) 70%);
+    animation: pkFlash .2s ease-out forwards;
+  }
+  @keyframes pkFlash { from { transform: scale(.3); opacity: 1 } to { transform: scale(1.6); opacity: 0 } }
+  /* --- 出てくるカード --- */
+  .pk-cards { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .pk-slot {
+    width: 116px; height: 172px; perspective: 900px;
+    opacity: 0; transform: translateY(26px) scale(.85); transition: opacity .24s, transform .24s;
+  }
+  .pk-slot.in { opacity: 1; transform: none; }
+  .pk-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .34s ease; }
+  .pk-slot.flip .pk-inner { transform: rotateY(180deg); }
+  .pk-back, .pk-front { position: absolute; inset: 0; backface-visibility: hidden; }
+  .pk-back {
+    border-radius: 8px; border: 1px solid rgba(190,175,255,.45);
+    background-color: #1b1330;
+    background-image:
+      radial-gradient(circle 16px at 34% 46%, #ffc7bb 0 96%, transparent 97%),
+      radial-gradient(circle 16px at 66% 46%, #ffc7bb 0 96%, transparent 97%),
+      linear-gradient(150deg, #4a3a86, #1b1330 70%);
+    background-repeat: no-repeat;
+  }
+  /* 出てくるカードは実カードをそのまま縮小して見せる(面・本文つきのミニ版) */
+  .pk-front { transform: rotateY(180deg); }
+  .pk-front .pcard { cursor: default; transform: scale(.3412); transform-origin: top left; }
+  .pk-slot.rare .pk-front { filter: drop-shadow(0 0 12px rgba(255,215,110,.9)); }
+  .pk-new {
+    position: absolute; top: -6px; left: -4px; z-index: 3; padding: 1px 6px; border-radius: 4px;
+    background: #e0483c; color: #fff; font-size: 9px; font-weight: bold; letter-spacing: 1px;
+  }
+  .pk-rarehit {
+    font-family: var(--hf); font-size: 22px; letter-spacing: 4px; color: #ff8fb3;
+    transform: skew(-6deg);
+    text-shadow: 0 0 16px rgba(255,79,139,.85), 1.5px 1.5px 0 rgba(0,0,0,.6);
+    animation: pkRare .5s cubic-bezier(.2,1.4,.4,1) backwards;
+  }
+  @keyframes pkRare { from { transform: scale(.4); opacity: 0 } }
+  @media (max-width: 560px) {
+    .pk-pack { width: 132px; height: 178px; }
+    .pk-slot { width: 96px; height: 142px; }
+    .pk-front .pcard { transform: scale(.2824); }
+  }
+
+  /* ===== ルール表示(HELLのメニューと対戦画面の両方から開く) ===== */
+  #rules-overlay {
+    position: fixed; inset: 0; z-index: 32; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(4,8,14,.92);
+  }
+  #rules-overlay.show { display: flex; }
+  #rules-panel {
+    width: min(680px, 100%); max-height: 92vh; display: flex; flex-direction: column;
+    overflow: hidden; color: #f2ecf4;
+    font-family: "Hiragino Sans", sans-serif;
+    background: linear-gradient(180deg, #352939, #171019);
+    border: none;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+  }
+  #rules-head {
+    flex: none; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: linear-gradient(90deg, rgba(255,79,139,.22), rgba(43,33,48,.3));
+    border-bottom: 1px solid rgba(255,143,179,.28);
+  }
+  #rules-title {
+    font-family: var(--hf); font-size: 15px; letter-spacing: .04em; color: var(--pk);
+    transform: skew(-6deg); text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  #rules-close {
+    margin-left: auto; width: 32px; height: 32px; border: none;
+    background: var(--paper); color: var(--ink);
+    font-size: 17px; cursor: pointer; font-family: inherit;
+    clip-path: polygon(12% 4%, 92% 0, 100% 82%, 84% 100%, 4% 94%, 0 16%);
+  }
+  #rules-close:hover { background: var(--pk); color: #fff; }
+  #rules-body { padding: 6px 18px 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .rules-sec { margin-top: 18px; }
+  .rules-sec h3 {
+    margin: 0 0 8px; font-size: 13px; letter-spacing: .1em; color: #ffb3cd;
+    border-left: 3px solid var(--pk); padding-left: 8px;
+  }
+  .rules-sec p { margin: 0 0 7px; font-size: 13.5px; line-height: 1.75; opacity: .92; }
+  .rules-sec ol { margin: 0; padding-left: 1.35em; }
+  .rules-sec ol li { font-size: 13.5px; line-height: 1.75; margin-bottom: 5px; opacity: .92; }
+  .rules-sec b { color: var(--pk-pale); font-weight: bold; }
+  @media (max-width: 560px) {
+    #rules-body { padding: 4px 14px 16px; }
+    .rules-sec p, .rules-sec ol li { font-size: 13px; }
+  }
+
+  /* ===== 対戦画面(おしりバトルダイス) =====
+     ポケポケ風: 盤面は実物のカードを並べ、1イベントずつ演出を挟んで進める。 */
+  #battle-overlay {
+    position: fixed; inset: 0; z-index: 28; display: none;
+    background: radial-gradient(ellipse at 50% 42%, #3a2a44, #120c18 78%);
+    color: #f2ecf4; font-family: "Hiragino Sans", sans-serif; overflow: hidden;
+  }
+  #battle-overlay.show { display: flex; flex-direction: column; }
+  .bt-bar {
+    flex: none; display: flex; align-items: center; gap: 10px; padding: 6px 12px; font-size: 12px;
+    background: rgba(0,0,0,.45); border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .bt-bar.mine { border-bottom: none; border-top: 1px solid rgba(255,255,255,.1); }
+  .bt-bar .who { font-weight: bold; font-size: 13px; flex: 0 1 auto; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bt-bar .st { opacity: .68; }
+  .bt-barbtns { margin-left: auto; display: flex; gap: 6px; flex: none; }
+  .bt-quit {
+    padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 11px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.24); color: #fff;
+  }
+  .bt-quit.bt-icon { padding: 4px 8px; font-size: 14px; line-height: 1.1; }
+  .bt-quit.bt-icon.off { opacity: .5; }
+  /* 相手の手札は裏面で枚数ぶん並べる(少し重ねて場所を取らない) */
+  .bt-foehand {
+    flex: none; display: flex; justify-content: center; align-items: center;
+    min-height: 34px; padding: 3px 10px;
+  }
+  .bt-handrow.foe { gap: 8px; }
+  .bt-handrow.foe .bt-foehand { flex: 0 1 auto; min-width: 0; overflow: hidden; padding: 3px 4px; }
+  .bt-handrow.foe .st { font-size: 10.5px; opacity: .66; white-space: nowrap; flex: none; }
+  .bt-back {
+    width: 24px; height: 33px; flex: none; margin-right: -9px; border-radius: 4px;
+    background:
+      radial-gradient(circle 2px at 50% 50%, rgba(255,255,255,.5) 98%, transparent 100%),
+      radial-gradient(circle 2px at 28% 26%, rgba(255,255,255,.35) 98%, transparent 100%),
+      radial-gradient(circle 2px at 72% 74%, rgba(255,255,255,.35) 98%, transparent 100%),
+      linear-gradient(150deg, #4a3a86, #1b1330 70%);
+    background-repeat: no-repeat;
+    border: 1px solid rgba(190,175,255,.45); box-shadow: 0 2px 5px rgba(0,0,0,.5);
+    animation: btBackIn .3s ease-out backwards;
+  }
+  .bt-back:last-child { margin-right: 0; }
+  @keyframes btBackIn { from { opacity: 0; transform: translateY(-8px); } }
+  .bt-foehand .cnt { margin-left: 14px; font-size: 11px; opacity: .6; }
+
+  .bt-field {
+    flex: none; display: flex; gap: 14px; justify-content: center; align-items: center;
+    min-height: 0; padding: 6px;
+  }
+  .bt-empty { opacity: .28; font-size: 12px; }
+  /* 場とトラッシュ置き場を横並びに */
+  /* トラッシュ(絶対配置・70px)が収まる高さを常に確保する。
+     場が空のときは行が30pxほどになり、下のバーにかぶってしまうため */
+  .bt-row { flex: none; position: relative; display: flex; align-items: center; min-height: 80px; }
+  .bt-row .bt-field { flex: 1; }
+  .bt-trash {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    width: 52px; height: 70px; border-radius: 7px; cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: linear-gradient(160deg, rgba(70,80,100,.5), rgba(15,20,30,.7));
+    border: 1px dashed rgba(255,255,255,.28); color: #cfe0f5;
+  }
+  .bt-trash .ic { font-size: 19px; opacity: .8; }
+  .bt-trash .n { font-size: 11px; font-weight: bold; color: var(--pk-pale); }
+  .bt-trash.empty { opacity: .35; }
+  .bt-trash:hover { border-color: var(--pk); }
+  .bt-trash.flash { animation: btTrashFlash .5s ease-out; }
+  @keyframes btTrashFlash {
+    0% { transform: translateY(-50%) scale(1.28); border-color: var(--pk); }
+    100% { transform: translateY(-50%) scale(1); }
+  }
+  /* トラッシュへ飛んでいくカードの残像 */
+  .bt-fly {
+    position: fixed; z-index: 8; pointer-events: none; border-radius: 7px;
+    background-size: cover; background-position: center;
+    border: 1px solid rgba(255,255,255,.4); box-shadow: 0 6px 18px rgba(0,0,0,.6);
+    transition: transform .55s cubic-bezier(.4,0,.6,1), opacity .55s ease-in;
+  }
+  /* トラッシュ一覧 */
+  .bt-trashlist {
+    position: absolute; inset: 0; z-index: 9; display: flex; flex-direction: column;
+    align-items: center; gap: 12px; padding: 18px 14px; overflow-y: auto;
+    background: rgba(6,10,18,.94);
+  }
+  .bt-trashlist h3 { font-size: 16px; letter-spacing: 2px; }
+  .bt-trashlist .grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .bt-trashlist .pcard-mini { cursor: pointer; }
+  .bt-trashlist .pcard-mini:hover { box-shadow: 0 0 0 2px var(--pk); }
+  /* 選択用は盤面を隠しきらず、中央だけ暗くする */
+  .bt-pickrow {
+    inset: auto 0 116px; justify-content: flex-end; padding: 14px;
+    background: linear-gradient(180deg, rgba(6,10,18,0), rgba(6,10,18,.93) 22%);
+  }
+  .bt-pickrow h3 { font-size: 13px; letter-spacing: 1px; color: #ffb3cd; }
+
+  /* --- 先攻決め(伏せた2枚から1枚選ぶ) --- */
+  .bt-flip {
+    position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    background: rgba(6,10,18,.95);
+  }
+  .bt-flip h3 { font-size: 19px; letter-spacing: 3px; }
+  .bt-flip .sub { font-size: 12px; opacity: .65; margin-bottom: 14px; }
+  .bt-flip .row { display: flex; gap: 22px; }
+  .bt-flipcard { width: 132px; height: 184px; perspective: 800px; cursor: pointer; }
+  .bt-flipcard .in {
+    position: relative; width: 100%; height: 100%; transition: transform .5s ease;
+    transform-style: preserve-3d;
+  }
+  .bt-flipcard.open .in { transform: rotateY(180deg); }
+  .bt-flipcard .bk, .bt-flipcard .fr {
+    position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,143,179,.55); box-shadow: 0 6px 18px rgba(0,0,0,.6);
+  }
+  /* 裏面はおしり。2つの円と、短い縦の割れ目で描く */
+  .bt-flipcard .bk {
+    background-color: #2a1a4a;
+    background-image:
+      linear-gradient(rgba(150,70,60,.6), rgba(150,70,60,.6)),
+      radial-gradient(circle 28px at 32% 54%, #ffc7bb 0 96%, transparent 97%),
+      radial-gradient(circle 28px at 68% 54%, #ffc7bb 0 96%, transparent 97%),
+      linear-gradient(160deg, #6b4a9c, #2a1a4a 72%);
+    background-size: 3px 38px, 100% 100%, 100% 100%, 100% 100%;
+    background-position: 50% 54%, 0 0, 0 0, 0 0;
+    background-repeat: no-repeat;
+  }
+  /* 先攻は暖色(金赤)・後攻は寒色(青銀)で、めくった瞬間に見分けがつくようにする */
+  .bt-flipcard .fr {
+    transform: rotateY(180deg); font-size: 26px; font-weight: bold; letter-spacing: 4px;
+    color: #22160b; background: linear-gradient(160deg, #ffe9a8, #f0bf5c);
+  }
+  .bt-flipcard .fr.fr-first  { color: #3d1206; background: linear-gradient(160deg, #ffd9a0, #ef8a3e); }
+  .bt-flipcard .fr.fr-second { color: #0c1e3a; background: linear-gradient(160deg, #cfe2ff, #6d97d8); }
+  .bt-flipcard:not(.open):hover .in { transform: translateY(-8px); }
+  .bt-flipcard.chosen .fr { box-shadow: 0 0 0 3px #fff, 0 6px 22px rgba(255,79,139,.65); }
+  @media (max-width: 560px) {
+    .bt-flipcard { width: 108px; height: 150px; }
+    .bt-flip .row { gap: 16px; }
+  }
+
+  /* --- 盤面のカード --- */
+  .bt-card {
+    position: relative; width: 124px; height: 164px; flex: none; border-radius: 9px;
+    overflow: visible; cursor: default; transition: transform .18s;
+    background: linear-gradient(160deg, var(--fr, #c9a227), #241a10 65%);
+    padding: 4px; box-shadow: 0 5px 16px rgba(0,0,0,.55);
+  }
+  .bt-card.power  { --fr: #d1452f; }
+  .bt-card.mecha  { --fr: #3f86c4; }
+  .bt-card.occult { --fr: #8b57c9; }
+  .bt-card-art {
+    height: 96px; border-radius: 6px; background-size: cover; background-position: center;
+    background-color: #14100c; border: 1px solid rgba(255,255,255,.22);
+  }
+  .bt-card-name {
+    font-size: 10.5px; font-weight: bold; line-height: 1.25; margin: 4px 2px 3px;
+    height: 26px; overflow: hidden;
+  }
+  .bt-card-hp { height: 7px; border-radius: 4px; background: rgba(0,0,0,.55); overflow: hidden; margin: 0 2px; }
+  .bt-card-hp i {
+    display: block; height: 100%; transition: width .45s cubic-bezier(.3,1,.4,1);
+    background: linear-gradient(90deg, #ff5f6d, #ffd76e);
+  }
+  .bt-card-num { font-size: 10px; opacity: .8; margin: 2px 3px 0; }
+  .bt-card.pick { cursor: pointer; box-shadow: 0 0 0 3px var(--pk), 0 0 22px rgba(255,79,139,.55); }
+  .bt-card.pick:hover { transform: translateY(-5px); }
+  /* いま行動する(サイコロを振る)モンスターを強く目立たせる */
+  .bt-card.acting {
+    z-index: 3; transform: translateY(-7px) scale(1.06);
+    animation: btActing 1.1s ease-in-out infinite;
+  }
+  @keyframes btActing {
+    0%, 100% { box-shadow: 0 0 0 3px #7fe3ff, 0 0 18px rgba(127,227,255,.55); }
+    50% { box-shadow: 0 0 0 4px #b5f0ff, 0 0 36px rgba(127,227,255,.95); }
+  }
+  .bt-card.acting::after {
+    content: "行動中"; position: absolute; left: 50%; top: -11px; transform: translateX(-50%);
+    background: linear-gradient(90deg, #7fe3ff, #4fc3f7); color: #04202c;
+    font-size: 9px; font-weight: bold; letter-spacing: 1px; padding: 1px 9px;
+    border-radius: 8px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
+  /* 行動を終えたカードだけを沈める(ターンが終わると全部明るく戻る) */
+  .bt-card.done { opacity: .45; filter: saturate(.5); }
+  /* 攻撃の踏み込み(自分は上へ、相手は下へ) */
+  .bt-card.lunge-up { animation: btLungeUp .5s cubic-bezier(.3,1.4,.5,1); }
+  .bt-card.lunge-down { animation: btLungeDown .5s cubic-bezier(.3,1.4,.5,1); }
+  @keyframes btLungeUp {
+    0% { transform: translateY(-7px) scale(1.06) }
+    30% { transform: translateY(-34px) scale(1.14) }
+    100% { transform: translateY(-7px) scale(1.06) }
+  }
+  @keyframes btLungeDown {
+    0% { transform: translateY(-7px) scale(1.06) }
+    30% { transform: translateY(20px) scale(1.14) }
+    100% { transform: translateY(-7px) scale(1.06) }
+  }
+  .bt-sick {
+    position: absolute; top: 7px; right: 6px; z-index: 2; padding: 1px 5px; border-radius: 4px;
+    background: rgba(20,40,70,.85); border: 1px solid rgba(160,200,255,.5);
+    font-size: 9px; letter-spacing: .5px;
+  }
+  /* 行動停止は召喚酔いと別の色にして、見分けられるようにする */
+  .bt-sick.stop { background: rgba(80,20,60,.9); border-color: rgba(255,150,210,.65); color: #ffd7ee; }
+  .bt-sick.stop.soon { background: rgba(70,50,10,.9); border-color: rgba(255,210,120,.6); color: #ffe9a8; }
+  /* 被弾・回復・撃破 */
+  .bt-card.hit { animation: btHit .42s ease-out; }
+  @keyframes btHit {
+    0% { transform: translate(0,0) }   15% { transform: translate(-8px,3px) rotate(-3deg) }
+    35% { transform: translate(7px,-2px) rotate(3deg) } 55% { transform: translate(-5px,2px) rotate(-2deg) }
+    75% { transform: translate(4px,0) rotate(1deg) }    100% { transform: translate(0,0) }
+  }
+  .bt-card .bt-flash {
+    position: absolute; inset: 0; border-radius: 9px; pointer-events: none; opacity: 0;
+  }
+  .bt-card.hit .bt-flash { background: rgba(255,60,60,.55); animation: btFlash .42s ease-out; }
+  .bt-card.healed .bt-flash { background: rgba(90,255,150,.45); animation: btFlash .55s ease-out; }
+  @keyframes btFlash { 0% { opacity: .9 } 100% { opacity: 0 } }
+  .bt-card.dying { animation: btDie .6s ease-in forwards; }
+  @keyframes btDie {
+    to { transform: scale(.55) rotate(14deg); opacity: 0; filter: grayscale(1); }
+  }
+  .bt-card.entering { animation: btEnter .42s cubic-bezier(.2,1.4,.4,1) backwards; }
+  @keyframes btEnter {
+    from { transform: translateY(40px) scale(.7); opacity: 0; }
+  }
+  .bt-card.leaving { animation: btLeave .5s ease-in forwards; }
+  @keyframes btLeave { to { transform: translateY(90px) scale(.6); opacity: 0; } }
+  /* 数字がふわっと上がる */
+  .bt-float {
+    position: absolute; left: 50%; top: 34%; z-index: 5; pointer-events: none;
+    font-size: 30px; font-weight: bold; text-shadow: 0 2px 8px rgba(0,0,0,.85), 0 0 14px currentColor;
+    animation: btFloat 1s ease-out forwards;
+  }
+  .bt-float.dmg { color: #ff5f6d; } .bt-float.heal { color: #7dffab; }
+  @keyframes btFloat {
+    0% { transform: translate(-50%, 6px) scale(.6); opacity: 0 }
+    22% { transform: translate(-50%, -6px) scale(1.25); opacity: 1 }
+    100% { transform: translate(-50%, -46px) scale(1); opacity: 0 }
+  }
+
+  /* --- 中央: 演出バナー・ダイス・直近ログ --- */
+  .bt-mid {
+    flex: 1 1 0; min-height: 150px; position: relative; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 5px; padding: 4px 10px; overflow: hidden;
+  }
+  .bt-banner {
+    max-width: 90%; padding: 9px 26px; border-radius: 10px; text-align: center;
+    font-size: 16px; font-weight: bold; line-height: 1.4; opacity: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0), rgba(34,24,40,.94) 18%, rgba(34,24,40,.94) 82%, rgba(0,0,0,0));
+    text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
+  .bt-banner.show { animation: btBanner .45s ease-out forwards; }
+  @keyframes btBanner {
+    0% { opacity: 0; transform: translateX(-40px) skewX(-12deg) }
+    100% { opacity: 1; transform: none }
+  }
+  .bt-banner .sub { display: block; font-size: 12px; font-weight: normal; opacity: .8; margin-top: 3px; }
+  .bt-turnbanner {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 3px;
+    pointer-events: none; opacity: 0; z-index: 4;
+    text-shadow: 0 0 22px rgba(255,79,139,.85), 0 3px 10px #000;
+  }
+  .bt-turnbanner.show { animation: btTurn 1s ease-out; }
+  @keyframes btTurn {
+    0% { opacity: 0; transform: translateY(-50%) scale(1.6) }
+    25% { opacity: 1; transform: translateY(-50%) scale(1) }
+    75% { opacity: 1 } 100% { opacity: 0; transform: translateY(-50%) scale(.9) }
+  }
+  /* 攻撃ロール中、カードの右上でサイコロが回る */
+  .bt-dice {
+    width: 64px; height: 64px; border-radius: 12px; background-color: #fdfaf2;
+    border: 2px solid #6b3f1d; box-shadow: 0 6px 18px rgba(0,0,0,.55);
+    background-repeat: no-repeat; --d: #5a3315; --r: 6.8px;
+  }
+  .bt-dice.rolling { animation: diceShake .1s linear infinite; }
+  .bt-dice.landed { animation: diceLand .5s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes diceShake {
+    0% { transform: rotate(-12deg) scale(1) } 50% { transform: rotate(12deg) scale(1.09) }
+    100% { transform: rotate(-12deg) scale(1) }
+  }
+  @keyframes diceLand { 0% { transform: scale(1.5) } 100% { transform: scale(1) } }
+  .bt-stage .bt-dice {
+    position: absolute; right: -22px; top: -16px; z-index: 3;
+    width: 74px; height: 74px; --r: 7.6px;
+  }
+  /* ロール中はカードそのものを画面中央にせり出させ、カード内の行を強調する */
+  .bt-stage {
+    position: fixed; left: 0; right: 0; top: 0; bottom: 62px; z-index: 6;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(4,8,14,.74); pointer-events: none;
+    animation: btStageIn .25s ease-out;
+  }
+  @keyframes btStageIn { from { opacity: 0 } to { opacity: 1 } }
+  .bt-stage-inner { position: relative; transform-origin: center; }
+  .bt-stage .pcard { box-shadow: 0 14px 50px rgba(0,0,0,.75), 0 0 30px rgba(255,79,139,.4); }
+  /* せり出したカードの上に乗るサイコロ */
+  /* カード内の6面テキストの強調 */
+  .pcard-face { transition: background .2s, opacity .2s; }
+  .pcard-face.spin { background: rgba(255,255,255,.55); }
+  .pcard-face.off { opacity: .3; }
+  .pcard-face.on {
+    background: linear-gradient(90deg, rgba(255,196,60,.55), rgba(255,215,110,.18));
+    box-shadow: inset 0 0 0 1.5px rgba(200,120,0,.8);
+    border-radius: 4px; font-weight: bold;
+    animation: btPickCard .5s cubic-bezier(.2,1.5,.4,1);
+  }
+  @keyframes btPickCard {
+    0% { transform: scale(1.08); background: rgba(255,255,255,.9); }
+    100% { transform: scale(1); }
+  }
+
+  /* 振る前に6面のテキストを見せ、出目が決まった行を強調する */
+  .bt-rollbox {
+    flex: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+    max-width: 100%; width: 100%; opacity: 0; transition: opacity .2s;
+  }
+  .bt-rollbox.show { opacity: 1; }
+  .bt-facelist {
+    flex: 1; min-width: 0; max-width: 400px; padding: 5px 7px; border-radius: 9px;
+    background: rgba(28,20,32,.9); border: 1px solid rgba(255,255,255,.14);
+  }
+  .bt-facelist .hd {
+    font-size: 9.5px; opacity: .6; margin-bottom: 2px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .bt-facerow {
+    display: flex; align-items: center; gap: 6px; padding: 0.5px 3px; border-radius: 4px;
+    font-size: 10px; line-height: 1.25; transition: all .18s; opacity: .55;
+  }
+  .bt-facerow .pip {
+    flex: none; width: 13px; height: 13px; border-radius: 3px; background-color: #fdfaf2;
+    border: 1px solid #6b3f1d; background-repeat: no-repeat; --d: #5a3315; --r: 1.5px;
+  }
+  .bt-facerow .tx { flex: 1; min-width: 0; }
+  .bt-facerow.spin { opacity: .95; background: rgba(255,255,255,.14); }
+  .bt-facerow.off { opacity: .28; }
+  .bt-facerow.on {
+    opacity: 1; font-weight: bold; background: linear-gradient(90deg, rgba(255,79,139,.42), rgba(255,79,139,.1));
+    box-shadow: inset 0 0 0 1px rgba(255,143,179,.8);
+    animation: btPick .5s cubic-bezier(.2,1.5,.4,1);
+  }
+  @keyframes btPick {
+    0% { transform: scale(1.14); background: rgba(255,255,255,.7); }
+    100% { transform: scale(1); }
+  }
+  /* ターン数は中央の上端に小さく置く */
+  .bt-turn {
+    position: absolute; top: 6px; left: 0; right: 0; text-align: center;
+    font-size: 11px; letter-spacing: 1px; opacity: .55; pointer-events: none;
+  }
+  /* 行動履歴(📋ボタンで開く) */
+  .bt-logview {
+    position: absolute; inset: 0; z-index: 12; display: none; flex-direction: column;
+    align-items: center; gap: 10px; padding: 18px 14px; background: rgba(6,10,18,.95);
+  }
+  .bt-logview.show { display: flex; }
+  .bt-logview h3 { font-size: 15px; letter-spacing: 2px; color: #ffb3cd; }
+  .bt-logview .lines {
+    width: min(560px, 94%); flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 4px; padding: 4px 2px;
+  }
+  .bt-logview .lines div {
+    font-size: 12.5px; line-height: 1.5; padding: 5px 9px; border-radius: 6px;
+    background: rgba(255,255,255,.06);
+  }
+  .bt-logview .lines div.you { border-left: 3px solid var(--pk); }
+  .bt-logview .lines div.foe { border-left: 3px solid #7fb0ff; }
+  /* イベントカードを中央に大きく出す */
+  /* 判定ダイス(イベントの「サイコロを振って○○なら」)を画面中央で振る */
+  .bt-dicecheck {
+    position: fixed; left: 0; right: 0; top: 0; bottom: 62px; z-index: 6;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(4,8,14,.6); pointer-events: none;
+    animation: btStageIn .2s ease-out;
+  }
+  /* 中央のバナー文と重ならないよう、サイコロは少し上に出す */
+  .bt-dicecheck { flex-direction: column; gap: 18px; }
+  .bt-dicecheck .bt-dice { width: 96px; height: 96px; --r: 10px; transform: translateY(-110px); }
+  /* 何の判定なのかの説明(直前に実行した面/イベントの文) */
+  .bt-dc-text {
+    max-width: min(560px, 88vw); transform: translateY(-110px);
+    padding: 10px 18px; border-radius: 10px; text-align: center;
+    background: rgba(30,22,34,.93); border: 1px solid rgba(255,143,179,.5);
+    color: var(--pk-pale); font-size: 15px; font-weight: bold; line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0,0,0,.5);
+  }
+  @media (max-width: 560px) { .bt-dc-text { font-size: 13px; } }
+  /* 判定結果のスタンプ(バナーの下にドンと出す) */
+  .bt-dicecheck .bt-verdict {
+    position: absolute; left: 0; right: 0; top: 50%; text-align: center;
+    font-size: 46px; font-weight: 900; letter-spacing: .08em;
+    text-shadow: 0 4px 18px rgba(0,0,0,.7), 0 0 26px rgba(0,0,0,.5);
+    animation: verdictIn .38s cubic-bezier(.2,1.4,.4,1) both;
+    pointer-events: none;
+  }
+  .bt-dicecheck .bt-verdict.ok { color: #ff8fb3; }
+  .bt-dicecheck .bt-verdict.ng { color: #9fb0c2; }
+  @keyframes verdictIn {
+    from { opacity: 0; transform: translateY(46px) scale(2.4); }
+    to { opacity: 1; transform: translateY(46px) scale(1); }
+  }
+  .bt-dicecheck .bt-dice.rolling { animation: diceCheckShake .1s linear infinite; }
+  .bt-dicecheck .bt-dice.landed { animation: diceCheckLand .5s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes diceCheckShake {
+    0% { transform: translateY(-110px) rotate(-12deg) } 50% { transform: translateY(-110px) rotate(12deg) scale(1.09) }
+    100% { transform: translateY(-110px) rotate(-12deg) }
+  }
+  @keyframes diceCheckLand { 0% { transform: translateY(-110px) scale(1.5) } 100% { transform: translateY(-110px) scale(1) } }
+  .bt-eventpop {
+    position: absolute; left: 50%; top: 50%; z-index: 6; pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+  /* 出したら消えずに残す(引っこめるのは .out を付けたとき) */
+  .bt-eventpop.hold { animation: btPopHold .45s cubic-bezier(.2,1.3,.4,1) forwards; }
+  .bt-eventpop.out { animation: btPopOut .32s ease-in forwards; }
+  @keyframes btPopHold {
+    0% { transform: translate(-50%,-50%) scale(.4) rotate(-14deg); opacity: 0 }
+    100% { transform: translate(-50%,-50%) scale(1) rotate(0); opacity: 1 }
+  }
+  @keyframes btPopOut {
+    0% { transform: translate(-50%,-50%) scale(1); opacity: 1 }
+    100% { transform: translate(-50%,-58%) scale(.9); opacity: 0 }
+  }
+
+  /* --- 手札・操作 --- */
+  .bt-handwrap { position: relative; flex: 1 1 auto; min-width: 0; }
+  .bt-hand {
+    display: flex; gap: 5px; padding: 6px 9px; overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; touch-action: pan-x; scrollbar-width: thin;
+    background: rgba(0,0,0,.36); border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .bt-hand::-webkit-scrollbar { height: 5px; }
+  .bt-hand::-webkit-scrollbar-thumb { background: rgba(255,255,255,.3); border-radius: 3px; }
+  /* 画面外にまだ手札がある側に矢印を出す */
+  .bt-more {
+    position: absolute; top: 0; bottom: 0; width: 26px; display: none;
+    align-items: center; justify-content: center; pointer-events: none;
+    font-size: 20px; font-weight: bold; color: #ff9fc0; text-shadow: 0 0 8px rgba(0,0,0,.9);
+    animation: moreNudge 1.1s ease-in-out infinite;
+  }
+  .bt-more.left  { left: 0;  background: linear-gradient(90deg, rgba(4,8,14,.92), transparent); }
+  .bt-more.right { right: 0; background: linear-gradient(270deg, rgba(4,8,14,.92), transparent); }
+  .bt-more.show { display: flex; }
+  @keyframes moreNudge { 0%,100% { opacity: .6 } 50% { opacity: 1 } }
+  /* 手札は「何のカードか分かる」最小限まで縮め、中央の演出領域を広く取る */
+  /* 手札のカード: 場のカード(bt-card)と同じ見た目(絵柄+下に名前)。番号やHPは出さない */
+  .bt-handcard {
+    position: relative; width: 84px; height: 112px; flex: none; border-radius: 7px;
+    padding: 3px; cursor: pointer; transition: transform .14s, box-shadow .14s;
+    background: linear-gradient(160deg, var(--fr, #c9a227), #241a10 65%);
+    box-shadow: 0 3px 10px rgba(0,0,0,.5);
+  }
+  .bt-handcard.power  { --fr: #d1452f; }
+  .bt-handcard.mecha  { --fr: #3f86c4; }
+  .bt-handcard.occult { --fr: #8b57c9; }
+  .bt-handcard.event  { --fr: #b9873f; }
+  .bt-handcard .bt-card-art { height: 56px; }
+  .bt-handcard .bt-card-name {
+    font-size: 8.5px; line-height: 1.25; margin: 3px 1px 2px; height: auto;
+    max-height: 21px; overflow: hidden;
+  }
+  .bt-handcard .bt-card-hp { height: 5px; margin: 0 1px; }
+  .bt-handcard .bt-card-num { font-size: 8.5px; margin: 1px 1px 0; }
+  /* 交換/バウンスで手札に戻った直後の回復エフェクト(緑の光がふわっと消える) */
+  .bt-handcard.healed { animation: handHeal .9s ease-out; }
+  @keyframes handHeal {
+    0%   { box-shadow: 0 0 0 3px rgba(90,255,150,.95), 0 0 22px rgba(90,255,150,.85); }
+    100% { box-shadow: 0 3px 10px rgba(0,0,0,.5); }
+  }
+  .bt-handcard.pick { transform: translateY(-10px); box-shadow: 0 0 0 2px var(--pk), 0 8px 20px rgba(0,0,0,.55); }
+  .bt-handcard.sel { transform: translateY(-16px); box-shadow: 0 0 0 3px #7dffab, 0 8px 20px rgba(0,0,0,.55); }
+  .bt-handcard.dim { opacity: .32; }
+  /* 手札の右端に置く山札 */
+  .bt-handrow {
+    flex: none; display: flex; align-items: stretch;
+    background: rgba(0,0,0,.36); border-top: 1px solid rgba(255,255,255,.1);
+    /* 早送りレイヤー(.bt-skip z7)より上に置き、相手ターン中も手札をスクロールできるようにする */
+    position: relative; z-index: 8;
+  }
+  .bt-handrow.foe { background: none; border-top: none; align-items: center; }
+  .bt-handrow .bt-hand { flex: 1; min-width: 0; background: none; border-top: none; }
+  .bt-handrow .bt-foehand { flex: 1; min-width: 0; }
+  .bt-deck {
+    position: relative; flex: none; align-self: center; margin: 6px 10px 6px 4px;
+    width: 62px; height: 84px; border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background:
+      radial-gradient(circle 2.5px at 50% 42%, rgba(255,255,255,.5) 98%, transparent 100%),
+      linear-gradient(150deg, #4a3a86, #1b1330 70%);
+    background-repeat: no-repeat;
+    border: 1px solid rgba(190,175,255,.45); box-shadow: 0 3px 10px rgba(0,0,0,.55);
+    color: #e6dcff;
+  }
+  /* 重なった束に見せる */
+  .bt-deck::before, .bt-deck::after {
+    content: ""; position: absolute; inset: 0; border-radius: 6px; z-index: -1;
+    background: linear-gradient(150deg, #3d2f72, #150f26 70%);
+    border: 1px solid rgba(190,175,255,.28);
+  }
+  .bt-deck::before { transform: translate(4px, 4px); }
+  .bt-deck::after { transform: translate(8px, 8px); }
+  .bt-deck .lb { font-size: 9px; opacity: .65; letter-spacing: 1px; }
+  .bt-deck .n { font-size: 15px; font-weight: bold; color: var(--pk-pale); }
+  /* 相手側の山札は左端に置く(右端は相手のトラッシュ置き場と重なるため) */
+  .bt-handrow.foe .bt-deck { order: -1; }
+  .bt-deck.small { width: 34px; height: 46px; margin: 2px 6px 2px 12px; }
+  .bt-deck.small .n { font-size: 11px; }
+  .bt-deck.small::before { transform: translate(2px, 2px); }
+  .bt-deck.small::after { transform: translate(4px, 4px); }
+  .bt-deck.draw { animation: btDeckPulse .4s ease-out; }
+  @keyframes btDeckPulse {
+    0% { transform: scale(1.12); border-color: var(--pk); } 100% { transform: scale(1); }
+  }
+  /* 山札の一番上から1枚スライドして抜け、手札へ滑り込むカード */
+  .bt-slide {
+    position: fixed; z-index: 9; pointer-events: none; border-radius: 6px;
+    background:
+      radial-gradient(circle 2.5px at 50% 42%, rgba(255,255,255,.5) 98%, transparent 100%),
+      linear-gradient(150deg, #4a3a86, #1b1330 70%);
+    background-repeat: no-repeat;
+    border: 1px solid rgba(190,175,255,.55); box-shadow: 0 5px 16px rgba(0,0,0,.65);
+  }
+
+  /* 次に何をすべきかを見落とさないよう、操作パネルは画面中央に浮かせる */
+  .bt-prompt {
+    position: fixed; left: 50%; top: 60%; z-index: 9;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    width: max-content; max-width: min(560px, 92vw); padding: 14px 20px; border-radius: 14px;
+    background: rgba(30,22,34,.94); border: 1px solid rgba(255,143,179,.45);
+    box-shadow: 0 12px 40px rgba(0,0,0,.7);
+    font-size: 13.5px; text-align: center;
+    animation: promptIn .22s ease-out;
+  }
+  .bt-prompt:empty { display: none; }
+  /* カードが中央にせり出している間は、隠さないよう下に逃がす */
+  .bt-prompt.low { top: auto; bottom: 14px; transform: translateX(-50%); }
+  .bt-prompt .msg { flex: 1 1 100%; min-width: 0; line-height: 1.5; }
+  /* 長い()注釈はPC表示でだけ(の前で改行する(スマホは幅なりの折り返しのまま) */
+  @media (min-width: 761px) {
+    .bt-prompt .msg .msg-note { display: block; }
+  }
+  @keyframes promptIn { from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); } }
+  .bt-act {
+    padding: 9px 18px; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: bold; color: #fff;
+    background: linear-gradient(135deg, #ff6fa5, var(--pk-deep)); border: none;
+    clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  }
+  .bt-act:hover:not(:disabled) { filter: brightness(1.12); }
+  .bt-act.big { padding: 12px 30px; font-size: 15px; }
+  .bt-act.ghost { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.28); }
+  .bt-act:disabled { opacity: .4; cursor: not-allowed; }
+  .bt-faces { display: flex; gap: 6px; flex-wrap: wrap; }
+  .bt-face {
+    width: 34px; height: 34px; border-radius: 7px; cursor: pointer;
+    background-color: #fdfaf2; border: 1px solid #6b3f1d; background-repeat: no-repeat;
+    --d: #5a3315; --r: 3.6px;
+  }
+  /* 演出中に画面をタップすると早送りする透明レイヤ */
+  .bt-skip { position: absolute; inset: 0; z-index: 7; cursor: pointer; }
+  /* 相手ターン中だけの「スキップ」ヒント。バナーとは違う透かし文字の出し方にする
+     (枠なし・字間広め・ゆっくり明滅。1秒の遅延つきなので一瞬の演出では現れない) */
+  .bt-skip.hint::after {
+    content: "▶▶ 画面タップでスキップ";
+    position: absolute; left: 50%; bottom: 44%; transform: translateX(-50%);
+    white-space: nowrap; pointer-events: none;
+    font-size: 12px; letter-spacing: 4px; font-weight: bold;
+    color: rgba(255,255,255,.6); text-shadow: 0 1px 6px rgba(0,0,0,.9);
+    animation: skipHintIn .5s ease-out 1s backwards, skipHintPulse 1.8s ease-in-out 1.5s infinite;
+  }
+  /* カード詳細(せり出し)・判定ダイス・イベント表示が出ている間は透かしを被せない */
+  #battle-overlay:has(.bt-stage, .bt-dicecheck, .bt-eventpop, .bt-pickrow) .bt-skip.hint::after { display: none; }
+  @keyframes skipHintIn { from { opacity: 0; transform: translate(-50%, 8px); } }
+  @keyframes skipHintPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+  .bt-result {
+    position: absolute; inset: 0; z-index: 9; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; text-align: center;
+    background: rgba(6,10,18,.94); padding: 20px;
+  }
+  .bt-result h2 {
+    font-family: var(--hf); font-weight: normal; font-size: 32px; letter-spacing: 4px;
+    transform: skew(-6deg); text-shadow: 2px 2px 0 var(--pk-deep), 0 0 22px rgba(255,79,139,.6);
+    animation: btTurn .8s ease-out;
+  }
+  .bt-result .sub { font-size: 13px; opacity: .82; }
+  .bt-rewards { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  /* 報酬カードの確認表示(画面に収まるよう縮める) */
+  .bt-rewardbig {
+    display: flex; align-items: center; justify-content: center;
+    max-height: 62vh; overflow: hidden;
+  }
+  .bt-rewardbig .pcard { transform: scale(min(1, 0.9)); transform-origin: center; }
+  @media (max-height: 800px) { .bt-rewardbig .pcard { transform: scale(.78); margin: -55px 0; } }
+  @media (max-height: 660px) { .bt-rewardbig .pcard { transform: scale(.62); margin: -95px 0; } }
+  .bt-rewardbtns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  /* 勝利報酬の選択カード: 実カードの縮小表示(面・本文つき) */
+  .bt-rewardcell { width: 156px; height: 231px; flex: none; cursor: pointer; transition: transform .14s; }
+  .bt-rewardcell .pcard { transform: scale(.46); transform-origin: top left; }
+  .bt-rewardcell:hover { transform: translateY(-8px); }
+  @media (max-width: 560px) {
+    .bt-rewardcell { width: 122px; height: 181px; }
+    .bt-rewardcell .pcard { transform: scale(.36); }
+  }
+  /* おまけパック(タップして開ける) */
+  .bt-rewardpack { display: flex; justify-content: center; padding: 6px 0 2px; }
+  .bt-packback {
+    width: 150px; height: 208px; border-radius: 12px; cursor: pointer;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px;
+    font-size: 11px; letter-spacing: 1px; color: var(--pk-pale); text-align: center;
+    background-color: #2a1a4a;
+    background-image:
+      linear-gradient(rgba(150,70,60,.6), rgba(150,70,60,.6)),
+      radial-gradient(circle 30px at 32% 46%, #ffc7bb 0 96%, transparent 97%),
+      radial-gradient(circle 30px at 68% 46%, #ffc7bb 0 96%, transparent 97%),
+      linear-gradient(160deg, #7a5cff, #241640 74%);
+    background-size: 3px 40px, 100% 100%, 100% 100%, 100% 100%;
+    background-position: 50% 46%, 0 0, 0 0, 0 0;
+    background-repeat: no-repeat;
+    border: 2px solid rgba(255,143,179,.6); box-shadow: 0 8px 24px rgba(0,0,0,.6);
+    animation: btPackWiggle 1.5s ease-in-out infinite;
+  }
+  .bt-packback:hover { filter: brightness(1.12); }
+  @keyframes btPackWiggle {
+    0%, 100% { transform: rotate(-2deg) translateY(0) }
+    50% { transform: rotate(2deg) translateY(-6px) }
+  }
+
+  @media (max-height: 700px) {
+    .bt-field { padding: 4px; }
+    .bt-card { width: 106px; height: 142px; }
+    .bt-card-art { height: 80px; }
+    .bt-card-name { height: 24px; font-size: 10px; }
+    .bt-foehand { min-height: 26px; padding: 2px 8px; }
+    .bt-back { width: 20px; height: 27px; }
+    .bt-deck { width: 48px; height: 66px; margin: 4px 6px; }
+    .bt-deck .n { font-size: 13px; }
+    .bt-hand .bt-handcard { width: 74px; height: 98px; }
+    .bt-hand .bt-handcard .bt-card-art { height: 46px; }
+    .bt-hand .bt-handcard .bt-card-name { font-size: 8px; max-height: 20px; }
+    .bt-prompt { padding: 10px 14px; font-size: 12.5px; }
+    .bt-stage .bt-dice { width: 56px; height: 56px; --r: 5.9px; right: -14px; top: -12px; }
+    .bt-banner { font-size: 14px; padding: 7px 20px; }
+    .bt-facerow { font-size: 9.5px; padding: 1px 3px; }
+    .bt-facelist { padding: 4px 6px; }
+  }
+  @media (max-width: 760px) {
+    .bt-bar { font-size: 10.5px; gap: 6px; padding: 5px 8px; white-space: nowrap; }
+    .bt-bar .who { font-size: 11.5px; }
+    .bt-quit { padding: 3px 8px; font-size: 10px; }
+    .bt-field { gap: 10px; }
+    .bt-card { width: 104px; height: 140px; }
+    .bt-trash { width: 42px; height: 58px; right: 5px; }
+    .bt-row { min-height: 66px; }
+    .bt-trash .ic { font-size: 16px; }
+    .bt-card-art { height: 78px; }
+    .bt-result h2 { font-size: 24px; }
+    .bt-rollbox { gap: 8px; }
+    .bt-facerow { font-size: 9.5px; }
+  }
+
+  #help-overlay, #settings-overlay, #zukan-overlay {
+    position: fixed; inset: 0; z-index: 25; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(8,6,14,.82);
+  }
+  /* ===== コレクションボード(部屋の茶色いボードをクリックで開く) ===== */
+  #board-overlay {
+    position: fixed; inset: 0; z-index: 25; display: none; align-items: center;
+    justify-content: center; padding: 20px; background: rgba(8,6,14,.82);
+  }
+  #board-overlay.show { display: flex; }
+  #board-card {
+    background: linear-gradient(160deg, #352939, var(--ink) 70%);
+    border: none;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+    width: min(1120px, 96vw); max-height: 88vh; overflow-y: auto; padding: 16px 16px 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #board-card h3 {
+    font-family: var(--hf); font-weight: normal; font-size: 15px; margin-bottom: 10px;
+    color: var(--pk); letter-spacing: 1px; transform: skew(-6deg);
+    text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  #board-count { font-size: 12px; opacity: .8; font-weight: normal; margin-left: 8px; color: #fff; }
+  #board-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  #board-grid .board-cell { width: 340px; height: 502px; flex: none; }
+  #board-grid .board-slot-card { cursor: pointer; transform-origin: top left; }
+  #board-grid .board-slot-card:hover { transform: translateY(-3px); transition: transform .15s; }
+  .board-slot-empty {
+    width: 340px; height: 502px; border-radius: 14px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.12);
+    color: rgba(255,255,255,.2); font-size: 20px; font-weight: bold;
+    font-family: ui-monospace, SFMono-Regular, monospace; letter-spacing: .08em;
+  }
+  @media (max-width: 760px) {
+    #board-grid { gap: 6px; justify-content: center; }
+  }
+  /* スマホは実カードを縮小して1行3枚並べる */
+  @media (max-width: 560px) {
+    #board-grid .board-cell { width: 101px; height: 149px; }
+    #board-grid .board-cell .pcard { transform: scale(.297); }
+    .board-slot-empty { width: 101px; height: 149px; border-radius: 6px; font-size: 10px; }
+  }
+  #help-overlay { cursor: pointer; }
+  #help-overlay.show, #settings-overlay.show, #zukan-overlay.show { display: flex; }
+  #settings-card, #zukan-card {
+    background: linear-gradient(160deg, #352939, var(--ink) 70%);
+    border: none;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+    padding: 20px 22px; width: min(440px, 92vw);
+    max-height: 80vh; overflow-y: auto; color: #fff; font-size: 13px;
+  }
+  #settings-card h3, #zukan-card h3 {
+    font-family: var(--hf); font-weight: normal; font-size: 16px; margin-bottom: 12px;
+    letter-spacing: 1px; color: var(--pk); transform: skew(-6deg);
+    text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  .set-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .set-row label { width: 110px; flex-shrink: 0; }
+  .set-row input[type="range"] { flex: 1; }
+  .set-row .set-val { width: 42px; text-align: right; opacity: .8; }
+  .modal-close {
+    margin-top: 14px; width: 100%; border: none; padding: 10px;
+    font-family: var(--hf); font-size: 14px; cursor: pointer;
+    background: var(--paper); color: var(--ink);
+    clip-path: polygon(1% 0, 100% 10%, 99% 100%, 0 90%);
+    transition: background .12s, color .12s;
+  }
+  .modal-close:hover { background: var(--pk); color: #fff; }
+  .zk-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .zk-tabs button {
+    flex: 1; border: none; padding: 8px; font-family: inherit;
+    font-weight: bold; cursor: pointer; background: rgba(255,255,255,.12); color: #fff;
+    clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+  }
+  .zk-tabs button.active { background: var(--pk); }
+  .zk-section-title { font-size: 12px; opacity: .7; margin: 10px 0 6px; letter-spacing: 1px; }
+  .zk-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .zk {
+    background: rgba(255,255,255,.12); padding: 4px 10px; font-size: 12px;
+    clip-path: polygon(3% 0, 100% 4%, 97% 100%, 0 96%);
+  }
+  .zk-miss { opacity: .45; background: rgba(0,0,0,.35); }
+  .zk-rec { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 4px 12px; font-size: 12px; }
+  .zk-rec b { color: var(--pk-pale); }
+  #help-card {
+    background: linear-gradient(160deg, #352939, var(--ink) 70%);
+    border: none;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    filter: drop-shadow(6px 6px 0 rgba(0,0,0,.45));
+    padding: 22px 26px; max-width: 440px;
+    color: #fff; font-size: 13px; line-height: 2.1;
+  }
+  #help-card h3 {
+    font-family: var(--hf); font-weight: normal; font-size: 16px; margin-bottom: 8px;
+    letter-spacing: 1px; color: var(--pk); transform: skew(-6deg);
+    text-shadow: 1.5px 1.5px 0 rgba(0,0,0,.55);
+  }
+  #help-card .close-note { margin-top: 10px; font-size: 11px; opacity: .6; text-align: center; }
+
+  #restart-btn {
+    border: none; padding: 12px 34px; font-size: 15px;
+    font-family: var(--hf); cursor: pointer; color: var(--ink);
+    background: var(--paper);
+    clip-path: polygon(4% 0, 100% 6%, 97% 100%, 0 92%);
+    transform: skew(-6deg);
+    filter: drop-shadow(4px 4px 0 var(--pk));
+    transition: background .12s, color .12s;
+  }
+  #restart-btn:hover { background: var(--pk); color: #fff; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="save-notice" role="status" hidden></div>
+  <div id="app"></div>
+  <div id="start-screen">
+    <!-- 仮置きのSVGロゴ。外部AI製のロゴ画像(assets/logo.png)が来たらimgに差し替える -->
+    <svg id="start-logo" viewBox="0 0 460 285" role="img" aria-label="おしりオフィス">
+      <g transform="translate(230,112) rotate(-4) scale(1.18,0.92)">
+        <g stroke="var(--ink)" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M -8,-84 C -66,-84 -102,-50 -102,-6 C -102,40 -68,72 -34,72 C -14,72 -3,58 0,36 C 3,58 14,72 34,72 C 68,72 102,40 102,-6 C 102,-50 66,-84 8,-84 Z" fill="var(--pk-pale)"/>
+          <path d="M 0,-84 C 0,-42 0,6 0,36" fill="none"/>
+        </g>
+        <ellipse cx="-52" cy="-38" rx="20" ry="12" fill="rgba(255,255,255,.85)" transform="rotate(-28 -52 -38)"/>
+        <g transform="translate(0,-86)">
+          <path d="M -13,-4 Q 0,-10 13,-4 L 9,16 Q 0,21 -9,16 Z" fill="#3b5aa0" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M -8,-2 Q 0,-6 8,-2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M -8,18 L 8,18 L 15,84 L 0,102 L -15,84 Z" fill="#3b5aa0" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M -3,24 L 5,24 L 6,36 L -2,36 Z" fill="rgba(255,255,255,.28)"/>
+        </g>
+        <g fill="var(--pk)" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round">
+          <path transform="translate(96,-64) rotate(14) scale(1.15)" d="M0,-26 L7,-9 L26,-9 L12,3 L17,22 L0,11 L-17,22 L-12,3 L-26,-9 L-7,-9 Z"/>
+        </g>
+      </g>
+      <g transform="translate(230,206) skewX(-8)" text-anchor="middle">
+        <text y="0" font-family="Mochiy Pop One" font-size="66" fill="var(--paper)"
+              stroke="var(--ink)" stroke-width="14" paint-order="stroke" letter-spacing="1">おしりオフィス</text>
+        <text y="38" font-family="Mochiy Pop One" font-size="17" fill="var(--pk)"
+              stroke="var(--ink)" stroke-width="6" paint-order="stroke" letter-spacing="10">OSHIRI OFFICE</text>
+      </g>
+    </svg>
+    <p class="tagline">おじさんのお尻を叩いて、宇宙へ導け。</p>
+    <div id="mode-buttons">
+      <button id="mode-fps">🎯 FPSモードで始める</button>
+      <button id="mode-god">🔒 神様モード</button>
+    </div>
+    <p id="mode-god-hint">神様モードはFPSモードをクリアすると解禁</p>
+    <p class="release-note">音が出ます。お尻を叩くコメディ表現があります。<br>記録はこのブラウザに保存されます。<br><a href="./about.html" target="_blank" rel="noopener">このゲームについて・素材クレジット</a></p>
+  </div>
+  <div id="title-bar">
+    <h1>おしりオフィス</h1>
+  </div>
+  <div id="slap-counter">
+    👋 スパンキングポイント: <span id="slap-count">0</span> / 1,000,000
+    <div id="slap-bar"><div id="slap-bar-fill"></div></div>
+    <div id="equip-line">🖐 <span id="equip-name">素手</span>(+<span id="equip-pts">5</span>pt)</div>
+  </div>
+  <div id="toast-area"></div>
+  <button id="spank-btn" title="スパンキング">👋</button>
+  <button id="zukan-btn" title="ずかん">📖</button>
+  <button id="photo-btn" title="しゃしん">📷</button>
+  <div id="photo-ui"></div>
+  <div id="photo-logo"></div>
+  <div id="photo-count"></div>
+  <button id="photo-peek" title="メニューを出す">📷</button>
+  <!-- 100万pt到達時の選択: 飛ばすか、なでなでして落ち着かせるか -->
+  <div id="end-choice">
+    <div id="end-choice-card">
+      <h3>おじさんが限界です!!</h3>
+      <p>お尻のエネルギーが100万ptに到達。<br>どうする?</p>
+      <button id="end-launch">🚀 宇宙へ飛ばす<small>エンディングへ</small></button>
+      <button id="end-soothe">🖐 なでなでして落ち着かせる<small>ポイントが0に戻る(累計・アイテムはそのまま)</small></button>
+    </div>
+  </div>
+  <button id="settings-btn" title="せってい">⚙️</button>
+  <button id="help-btn" title="あそびかた">?</button>
+  <div id="help-overlay">
+    <div id="help-card">
+      <h3>あそびかた</h3>
+      おじさんのお尻を叩いてポイントを貯めよう。<br>
+      部屋のいろんな場所も探ってみて。<br>
+      何度も叩くと、なにか出てくるかも…。<br><br>
+      <b>🎯 FPSモード</b><br>
+      <b>PC:</b> W・S 前後 / A・D 左右 / 矢印キーかドラッグで視点 / Space か クリックで叩く<br>
+      <b>スマホ:</b> 左スティックで移動・回転 / スワイプで視線 / タップか右下の👋ボタンで叩く<br>
+      対象には<b>近づかないと</b>叩けません。照準が赤くなったらチャンス!<br><br>
+      <b>👼 神様モード</b><br>
+      <b>PC:</b> ドラッグで視点をまわす / ホイールで寄り引き / クリックで叩く<br>
+      <b>スマホ:</b> スワイプで視点をまわす / ピンチで寄り引き / タップか右下の👋ボタンで叩く<br>
+      歩きまわらずに部屋ぜんぶへ手が届き、<b>距離に関係なく</b>叩けます。<br><br>
+      👋ボタンとSpaceキーは、どちらのモードでも<b>照準(画面中央)</b>を叩きます。
+      <div class="close-note">画面のどこかをタップで閉じる</div>
+    </div>
+  </div>
+  <div id="bubble"></div>
+  <div id="hoshi-bubble"></div>
+  <div id="carrie-bubble"></div>
+  <div id="stage-flash"></div>
+  <div id="fever-banner">🕺 FEVER TIME! ×3 <span class="fever-sec" id="fever-sec">15</span></div>
+  <div id="controls">
+    <div id="key-hint"></div>
+    <button id="chat-toggle" title="おじさんに質問">💬</button>
+    <div id="chat-row">
+      <input id="chat-input" type="text" placeholder="おじさんに質問してみよう" maxlength="60">
+      <button id="chat-send">送信</button>
+    </div>
+  </div>
+  <div id="settings-overlay">
+    <div id="settings-card">
+      <h3>⚙️ せってい</h3>
+      <div class="set-row"><label>BGM音量</label><input type="range" id="set-bgm" min="0" max="100" step="5"><span class="set-val" id="set-bgm-val"></span></div>
+      <div class="set-row"><label>効果音音量</label><input type="range" id="set-sfx" min="0" max="100" step="5"><span class="set-val" id="set-sfx-val"></span></div>
+      <div class="set-row"><label>ボイス読み上げ</label><input type="checkbox" id="set-voice"></div>
+      <div class="set-row"><label>視点感度</label><input type="range" id="set-look" min="50" max="200" step="10"><span class="set-val" id="set-look-val"></span></div>
+      <div class="set-row touch-only"><label>スティック感度</label><input type="range" id="set-stick" min="50" max="200" step="10"><span class="set-val" id="set-stick-val"></span></div>
+      <div class="set-row"><label>移動速度</label><input type="range" id="set-move" min="50" max="150" step="10"><span class="set-val" id="set-move-val"></span></div>
+      <div class="settings-info">記録はこのブラウザに保存されます。<br><a href="./about.html" target="_blank" rel="noopener">保存・共有について／素材クレジット</a><br><button id="reset-save" type="button">このゲームの保存データを削除</button></div>
+      <button class="modal-close" id="settings-close">とじる</button>
+    </div>
+  </div>
+  <div id="battle-overlay">
+    <div class="bt-bar">
+      <span class="who" id="bt-foe-name">相手</span>
+      <span class="bt-barbtns">
+        <button class="bt-quit bt-icon" id="bt-sound" title="音を消す">🔊</button>
+        <button class="bt-quit bt-icon" id="bt-history" title="行動履歴">📋</button>
+        <button class="bt-quit bt-icon" id="bt-rules" title="ルールを読む">📜</button>
+        <button class="bt-quit" id="bt-quit">投了</button>
+      </span>
+    </div>
+    <div class="bt-handrow foe">
+      <div class="bt-foehand" id="bt-foe-hand"></div>
+      <span class="st" id="bt-foe-st"></span>
+      <div class="bt-deck small" id="bt-foe-deck"><span class="n">0</span></div>
+    </div>
+    <div class="bt-row">
+      <div class="bt-field" id="bt-foe-field"></div>
+      <button class="bt-trash" id="bt-foe-trash" title="相手のトラッシュ"><span class="ic">🗑</span><span class="n">0</span></button>
+    </div>
+    <div class="bt-mid">
+      <div class="bt-turn" id="bt-turn"></div>
+      <div class="bt-turnbanner" id="bt-turnbanner"></div>
+      <div class="bt-banner" id="bt-banner"></div>
+    </div>
+    <div class="bt-row">
+      <div class="bt-field" id="bt-you-field"></div>
+      <button class="bt-trash" id="bt-you-trash" title="自分のトラッシュ"><span class="ic">🗑</span><span class="n">0</span></button>
+    </div>
+    <div class="bt-bar mine">
+      <span class="who">あなた</span>
+      <span class="st" id="bt-you-st"></span>
+    </div>
+    <div class="bt-handrow">
+      <div class="bt-handwrap">
+        <div class="bt-hand" id="bt-hand"></div>
+        <span class="bt-more left" id="bt-more-l">‹</span>
+        <span class="bt-more right" id="bt-more-r">›</span>
+      </div>
+      <div class="bt-deck" id="bt-you-deck"><span class="lb">山札</span><span class="n">0</span></div>
+    </div>
+    <div class="bt-prompt" id="bt-prompt"></div>
+    <div class="bt-logview" id="bt-logview">
+      <h3>行動履歴</h3>
+      <div class="lines" id="bt-loglist"></div>
+      <button class="bt-act ghost" id="bt-log-close">閉じる</button>
+    </div>
+  </div>
+  <div id="hell-overlay">
+    <div id="hell-panel">
+      <div id="hell-head">
+        <div>
+          <div id="hell-title">HELL 9000</div>
+          <div id="hell-sub">カードパック自動販売機</div>
+        </div>
+        <span id="hell-points">0 pt</span>
+        <button id="hell-close" title="閉じる">×</button>
+      </div>
+      <div id="hell-body"></div>
+    </div>
+  </div>
+
+  <div id="cine-caption"></div>
+
+  <div id="rules-overlay">
+    <div id="rules-panel">
+      <div id="rules-head">
+        <div id="rules-title">おしりバトルダイス — ルール</div>
+        <button id="rules-close" title="閉じる">×</button>
+      </div>
+      <div id="rules-body"></div>
+    </div>
+  </div>
+  <div id="board-overlay">
+    <div id="board-card">
+      <h3>🗂 コレクションボード <span id="board-count"></span></h3>
+      <div id="board-grid"></div>
+      <button class="modal-close" id="board-close">とじる</button>
+    </div>
+  </div>
+  <div id="zukan-overlay">
+    <div id="zukan-card">
+      <h3>📖 ずかん</h3>
+      <div class="zk-tabs">
+        <button id="zk-tab-col" class="active">コレクション</button>
+        <button id="zk-tab-rec">きろく</button>
+      </div>
+      <div id="zukan-content"></div>
+      <button class="modal-close" id="zukan-close">とじる</button>
+    </div>
+  </div>
+  <div id="ending">
+    <div class="stars">✦ ✧ ✦</div>
+    <h2>〜 完 〜</h2>
+    <div class="sub" id="ending-text">おじさんは宇宙へ飛び立ちました。<br>あなたの手のひらは、確かにおじさんを空へ導いたのです。</div>
+    <div class="sub" id="ending-stats"></div>
+    <button id="restart-btn">もう一度おじさんに会う</button>
+  </div>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

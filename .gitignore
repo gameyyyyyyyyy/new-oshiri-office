@@ -1,0 +1,13 @@
+# Development and machine-local files
+.DS_Store
+__MACOSX/
+.claude/
+.codex/
+.env
+.env.*
+!.env.example
+node_modules/
+_site/
+test-results/
+playwright-report/
+*.log
